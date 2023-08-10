@@ -16,8 +16,11 @@ typedef struct matrix Matrix;
 //  Declaração de funções
 
 Matrix* matrix_create( void );
-void print_matrix( Matrix *mMasterHead );
-int print_matrix_string_length ( float n );
+void matrix_table( Matrix *mMasterHead );
+int matrix_table_string_length( float n );
+float matrix_getelem( Matrix* m, int x, int y );
+void matrix_setelem( Matrix* m, int x, int y, float elem );
+void matrix_destroy( Matrix* m );
 
 //  Declaração de funções de debug ( REMOVER ANTES DE ENTREGAR )
 
@@ -28,6 +31,7 @@ void test_print_column ( Matrix *mHead );
 
 int main () {
     Matrix *matrix = matrix_create();
+    matrix_destroy( matrix );
 }
 
 //  Definição de funções
@@ -38,7 +42,7 @@ int main () {
 Matrix* matrix_create( void ) {
     int line = -1;
     int column = -1;
-    float value = -1.0;
+    float value = -1.0F;
     /* 
         variáveis temp (temporárias) são utilizadas para armazenar posições de listas
         que estão sendo iteradas, tempPrev serve para situações em que é necessário
@@ -186,7 +190,7 @@ Matrix* matrix_create( void ) {
                 node->below = temp;
             }
 
-            print_matrix( mMasterHead );
+            matrix_table( mMasterHead );
 
         } else {
             /*
@@ -195,7 +199,7 @@ Matrix* matrix_create( void ) {
                 não devem ser alocados)
             */
             if ( value == 0 ) {
-                print_matrix( mMasterHead );
+                matrix_table( mMasterHead );
             }
         }
 
@@ -204,10 +208,13 @@ Matrix* matrix_create( void ) {
     return mMasterHead;
 }
 
-//  print_matrix()
-//  Printa a matrix inteira como uma tabela no console
+/*
+    matrix_table()
 
-void print_matrix( Matrix *mMasterHead ) {
+    Printa a matrix inteira como uma tabela no console
+*/
+
+void matrix_table( Matrix *mMasterHead ) {
     int maxElements = 0;    //  Número de elementos por linha da matriz
     int spaces = 0;         //  Armazena o resultado de print_matrix_string_length()
     int i = 1;              //  Contador da quantidade de dados por linha
@@ -225,29 +232,32 @@ void print_matrix( Matrix *mMasterHead ) {
     while ( temp != mMasterHead ) {
         while ( i <= maxElements ) {
             if ( temp->line == -1 ) {
-                printf( "%d     ", temp->column );
+                spaces = matrix_table_string_length ( temp->column );
+                printf( "%d", temp->column );
                 temp = temp->right;
             } else
             if ( temp->column == -1 && i == 0) {
-                printf( "|%d     ", temp->line );
+                spaces = matrix_table_string_length ( temp->line );
+                printf( "|%d", temp->line );
                 temp = temp->right;
             } else
             if ( i == temp->column ) {
-                spaces = print_matrix_string_length ( temp->info );
+                spaces = matrix_table_string_length ( temp->info );
                 if ( fmod( temp->info, 1 ) == 0 ) {
                     printf( "%.0f", temp->info );
                 } else {
                     printf( "%.2f", temp->info );
                 }
-                while ( spaces != 0 ) {
-                    printf( " " );
-                    spaces--;
-                }
                 temp = temp->right;
             } else {
-                printf( "0     " );
+                spaces = 5;
+                printf( "0" );
             }
 
+            while ( spaces != 0 ) {
+                printf( " " );
+                spaces--;
+            }
             printf( "|" );
             i++;
         }
@@ -260,7 +270,7 @@ void print_matrix( Matrix *mMasterHead ) {
 }
 
 /*
-    print_matrix_string_length()
+    matrix_table_string_length()
 
     Função que recebe um valor da matriz e retorna a quantidade de espaços
     que deverão suceder o número em sua impressão na função print_matrix(),
@@ -270,7 +280,7 @@ void print_matrix( Matrix *mMasterHead ) {
     formatados
 */
 
-int print_matrix_string_length ( float n ) {
+int matrix_table_string_length ( float n ) {
     if ( n > 0 ) {
         if ( fmod( n, 1 ) == 0 ) {
             if ( n >= 100 ) {
@@ -308,21 +318,112 @@ int print_matrix_string_length ( float n ) {
     }
 }
 
-//  << REMOVER ANTES DE ENTREGAR >>
-//  Funções para ajudar a debugar
-
 /*
-    Nomes iniciados por "test"
+    matrix_getelem()
 
-    Obs:
-    A função de printar a matriz era inicialmente para debug
-    apenas, porém a formatação funcionou muito melhor do que eu
-    esperava, então acredito que seja uma função interessante
-    para se deixar na versão final do projeto
+    Retorna o dado armazenado na posição (x, y) da matriz (x = linha, y = coluna)
 */
 
-//  test_print_line()
-//  printa uma linha da matriz, recebendo como entrada sua cabeça
+float matrix_getelem( Matrix* m, int x, int y ) {
+    Matrix *temp, *mHead;
+    
+    for ( temp = m->right; temp->column != y && temp != m; temp = temp->right );
+    mHead = temp;
+    for ( temp = temp->below; temp->line != x && temp != mHead; temp = temp->below);
+
+    if ( temp->line == x && temp->column == y ) {
+        return temp->info;
+    }
+    return -1;
+}
+
+/*
+    matrix_setelem()
+
+    Altera o dado armazenado na posição (x, y) da matriz (x = linha, y = coluna)
+    pelo dado recebido em elem
+*/
+
+void matrix_setelem( Matrix* m, int x, int y, float elem ) {
+    Matrix *temp, *mHead;
+    
+    for ( temp = m->right; temp->column != y && temp != m; temp = temp->right );
+    mHead = temp;
+    for ( temp = temp->below; temp->line != x && temp != mHead; temp = temp->below);
+
+    if ( temp->line == x && temp->column == y ) {
+        temp->info = elem;
+    }
+}
+
+/*
+    matrix_destroy()
+
+    Função responsável por liberar os espaços de memória que estão alocando
+    os dados de uma matriz (Exclui uma matriz). utiliza-se a coluna -1 como
+    base para se iterar e liberar a memória ocupada por cada nodo. Após
+    isso, a coluna -1 também é excluida.
+
+    Obs:
+    "firstIteration" é necessário, pois "eraser" é inicializado com o
+    valor-condição necessário para o encerramento das repetições
+*/
+
+void matrix_destroy( Matrix* m ) {
+    Matrix *temp = m->right;    // Mantém uma referência para o próximo elemento
+    Matrix *eraser = m;         // Armazena a posição do elemento que será liberado
+    int firstIteration = 1;     // Permite que a primeira iteração ocorra
+
+    while ( eraser != m || firstIteration ) {
+        if ( eraser->column != -1) {
+            free ( eraser );
+        }
+        eraser = temp;
+        if ( temp != m ) {
+            if ( temp->right->column == -1 ) {
+                temp = temp->right;
+                temp = temp->below;
+            } else {
+                temp = temp->right;
+            }
+        }
+        if ( firstIteration ) {
+            firstIteration = 0;
+        }
+    }
+
+    printf( "\n" );
+    firstIteration = 1;
+    temp = m->below;
+    eraser = m;
+    
+    while ( eraser != m || firstIteration ) {
+        if ( eraser->line != -1 ) {
+            free ( eraser );
+        }
+        eraser = temp;
+        if ( temp != m ) {
+            temp = temp->below;
+        } else {
+            temp = NULL;
+        }
+        if ( firstIteration ) {
+            firstIteration = 0;
+        }
+    }
+
+    free(m);
+}
+
+//  << REMOVER ANTES DE ENTREGAR >>
+//  Funções para ajudar a debugar
+//  - Nomes iniciados por "test"
+
+/*
+    test_print_line()
+
+    printa uma linha da matriz, recebendo como entrada sua cabeça
+*/
 
 void test_print_line ( Matrix *mHead ) {
     printf( "\n" );
@@ -335,8 +436,11 @@ void test_print_line ( Matrix *mHead ) {
     printf( "\n\n" );
 }
 
-//  test_print_column()
-//  printa uma coluna da matriz, recebendo como entrada sua cabeça
+/*
+    test_print_column()
+
+    printa uma coluna da matriz, recebendo como entrada sua cabeça
+*/
 
 void test_print_column ( Matrix *mHead ) {
     printf( "\n" );
