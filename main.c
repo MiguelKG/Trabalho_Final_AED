@@ -16,21 +16,24 @@ typedef struct matrix Matrix;
 //  Declaração de funções
 
 Matrix* matrix_create( void );
-void matrix_table( Matrix *mMasterHead );
-int matrix_table_string_length( float n );
+void matrix_destroy( Matrix* m );
+void matrix_print( Matrix* m );
 float matrix_getelem( Matrix* m, int x, int y );
 void matrix_setelem( Matrix* m, int x, int y, float elem );
-void matrix_destroy( Matrix* m );
+void matrix_table( Matrix *mMasterHead );
+int matrix_table_string_length( float n );
 
 //  Declaração de funções de debug ( REMOVER ANTES DE ENTREGAR )
 
 void test_print_line ( Matrix *mHead );
 void test_print_column ( Matrix *mHead );
+int test_matrix_byte_size( Matrix* mMasterHead );
 
 //  Main
 
 int main () {
     Matrix *matrix = matrix_create();
+    printf( "%d", test_matrix_byte_size( matrix ) );
     matrix_destroy( matrix );
 }
 
@@ -126,10 +129,10 @@ Matrix* matrix_create( void ) {
             }    
         } while ( ( line < 0 || line > lines ) || ( column < 1 || column > columns ) );
 
-        if ( line != 0 && value != 0) {
+        if ( line != 0 ) {
 
             //  Criação de um novo nodo
-
+            
             Matrix *node = ( Matrix * ) malloc ( sizeof( Matrix ) );
 
             node->line = line;
@@ -156,14 +159,18 @@ Matrix* matrix_create( void ) {
 
             /*
                 As repetições a seguir são responsáveis por encontrar o nodo que será precedido
-                e o que será sucedido pelo novo nodo adicionado. O primeiro checa as linhas e o
-                segundo as colunas
+                e o que será sucedido pelo novo nodo adicionado. A primeira checa as linhas e a
+                segunda as colunas
 
                 Obs:
-                Caso seja adicionado um valor a uma posição já preenchida, o antigo nodo terá
+                - Caso seja adicionado um valor a uma posição já preenchida, o antigo nodo terá
                 seu valor sobrescrito pelo do novo, ao invés de ser trocada a referência de seu
                 predecessor e ser liberada a memória alocada pelo antigo, visto que isso cria
                 confusão entre os ponteiros da matriz
+
+                - Caso o valor zero seja adicionado a uma posição livre, ele será ignorado e o
+                nodo será excluído. Porém, caso a posição esteja ocupada, o antigo nodo que ali
+                se localizava será removido
             */
 
             for (
@@ -172,11 +179,17 @@ Matrix* matrix_create( void ) {
                 tempPrev = temp, temp = temp->right
             );
 
-            if ( temp->column == node->column ) {
-                temp->info = node->info;
+            if ( node->info != 0 ) {
+                if ( temp->column != node->column ) {
+                    tempPrev->right = node;
+                    node->right = temp;
+                } else {
+                    temp->info = node->info;
+                }
             } else {
-                tempPrev->right = node;
-                node->right = temp;
+                if ( temp->column == node->column ) {
+                   tempPrev->right = temp->right;
+                }
             }
 
             for (
@@ -185,24 +198,26 @@ Matrix* matrix_create( void ) {
                 tempPrev = temp, temp = temp->below
             );
 
-            if ( ! ( temp->line == node->line ) ) {
-                tempPrev->below = node;
-                node->below = temp;
+            if ( node->info != 0 ) {
+                if ( temp->line != node->line ) {
+                    tempPrev->below = node;
+                    node->below = temp;
+                } else {
+                    free ( node );
+                }
+            } else {
+                if ( temp->line == node->line ) {
+                    tempPrev->below = temp->below;
+                    free ( temp );
+                    free ( node );
+                } else {
+                    free ( node );
+                }
             }
 
             matrix_table( mMasterHead );
 
-        } else {
-            /*
-                Se o usuário digitar o valor 0 para algum nodo, a tabela será
-                printada e nada mais será feito (visto que nodos iguais a 0
-                não devem ser alocados)
-            */
-            if ( value == 0 ) {
-                matrix_table( mMasterHead );
-            }
         }
-
     } while ( line != 0 );
 
     return mMasterHead;
@@ -319,6 +334,38 @@ int matrix_table_string_length ( float n ) {
 }
 
 /*
+    matrix_print()
+
+    imprime os dados da matriz recebida no mesmo formato da entrada de
+    matrix_create()
+*/
+
+void matrix_print( Matrix* m ) {
+    Matrix *temp, *mHead;
+    int x = 0, y = 0;
+
+    for ( temp = m->right; temp != m; temp = temp->right, x++ );
+    for ( temp = m->below; temp != m; temp = temp->below, y++ );
+    printf( "\n%d %d\n", x, y );
+
+    temp = m->below;
+    mHead = m->below;
+    while ( temp != m ) {
+        if ( temp->column != -1 ) {
+            printf( "%d %d %.2f\n", temp->line, temp->column, temp->info );
+        }
+
+        if ( temp->right == mHead ) {
+            temp = temp->right;
+            temp = temp->below;
+            mHead = temp;
+        } else {
+            temp = temp->right;
+        }
+    }
+}
+
+/*
     matrix_getelem()
 
     Retorna o dado armazenado na posição (x, y) da matriz (x = linha, y = coluna)
@@ -365,8 +412,11 @@ void matrix_setelem( Matrix* m, int x, int y, float elem ) {
     isso, a coluna -1 também é excluida.
 
     Obs:
-    "firstIteration" é necessário, pois "eraser" é inicializado com o
+    1) "firstIteration" é necessário, pois "eraser" é inicializado com o
     valor-condição necessário para o encerramento das repetições
+
+    2) As checagens de "temp != m" são especialmente importantes para
+    evitar acesso indevido de memória
 */
 
 void matrix_destroy( Matrix* m ) {
@@ -448,4 +498,36 @@ void test_print_column ( Matrix *mHead ) {
         printf( "( %d x %d ) %.2f\n", temp->line, temp->column, temp->info );
     }
     printf( "\n" );
+}
+
+/*
+    test_matrix_byte_size()
+
+    retorna o tamanho em bytes da matriz (útil para verificar
+    vazamentos acusados pelo Dr. Memory)
+*/
+
+int test_matrix_byte_size( Matrix* mMasterHead ) {
+    Matrix *temp, *mHead;
+    int byteSize = 0;
+
+    temp = NULL;
+    mHead = mMasterHead;
+
+    while ( temp != mMasterHead ) {
+        if ( temp == NULL ) {
+            temp = mMasterHead;
+        }
+
+        byteSize += sizeof( Matrix );
+
+        if ( temp->right == mHead ) {
+            temp = temp->right->below;
+            mHead = temp;
+        } else {
+            temp = temp->right;
+        }
+    }
+
+    return byteSize;
 }
