@@ -33,14 +33,17 @@ int test_matrix_byte_size( Matrix* mMasterHead );
 
 int main () {
     Matrix *matrix = matrix_create();
-    printf( "%d", test_matrix_byte_size( matrix ) );
     matrix_destroy( matrix );
 }
 
 //  Definição de funções
 
-//  matrix_create()
-//  Cria uma matriz de acordo com inputs do usuário
+/*
+====================
+matrix_create()
+    Cria uma matriz de acordo com inputs do usuário
+====================
+*/
 
 Matrix* matrix_create( void ) {
     int line = -1;
@@ -70,7 +73,7 @@ Matrix* matrix_create( void ) {
     do {
         printf( "Digite o número de linhas e colunas da matriz: " );
         scanf( "%d %d", &lines, &columns );
-    } while ( lines < 1 || columns < 1) ;
+    } while ( lines < 1 || columns < 1 ) ;
 
     /*
         As seguintes duas repetições criam as cabeças de cada linha e coluna e 
@@ -125,9 +128,9 @@ Matrix* matrix_create( void ) {
                     printf( "Coluna inválida, digite novamente os 3 valores: \n" );
                 }
             } else {
-                column = 1;
+                break;
             }    
-        } while ( ( line < 0 || line > lines ) || ( column < 1 || column > columns ) );
+        } while ( ( line < 1 || line > lines ) || ( column < 1 || column > columns ) );
 
         if ( line != 0 ) {
 
@@ -224,14 +227,15 @@ Matrix* matrix_create( void ) {
 }
 
 /*
-    matrix_table()
-
+====================
+matrix_table()
     Printa a matrix inteira como uma tabela no console
+====================
 */
 
 void matrix_table( Matrix *mMasterHead ) {
-    int maxElements = 0;    //  Número de elementos por linha da matriz
-    int spaces = 0;         //  Armazena o resultado de print_matrix_string_length()
+    int maxElements = 0;    //  Número de colunas da matrix
+    int spaces = 0;         //  Armazena o resultado de matrix_table_string_length()
     int i = 1;              //  Contador da quantidade de dados por linha
     Matrix *temp;
 
@@ -247,17 +251,17 @@ void matrix_table( Matrix *mMasterHead ) {
     while ( temp != mMasterHead ) {
         while ( i <= maxElements ) {
             if ( temp->line == -1 ) {
-                spaces = matrix_table_string_length ( temp->column );
+                spaces = matrix_table_string_length( temp->column );
                 printf( "%d", temp->column );
                 temp = temp->right;
             } else
             if ( temp->column == -1 && i == 0) {
-                spaces = matrix_table_string_length ( temp->line );
+                spaces = matrix_table_string_length( temp->line );
                 printf( "|%d", temp->line );
                 temp = temp->right;
             } else
             if ( i == temp->column ) {
-                spaces = matrix_table_string_length ( temp->info );
+                spaces = matrix_table_string_length( temp->info );
                 if ( fmod( temp->info, 1 ) == 0 ) {
                     printf( "%.0f", temp->info );
                 } else {
@@ -285,14 +289,15 @@ void matrix_table( Matrix *mMasterHead ) {
 }
 
 /*
-    matrix_table_string_length()
-
+====================
+matrix_table_string_length()
     Função que recebe um valor da matriz e retorna a quantidade de espaços
-    que deverão suceder o número em sua impressão na função print_matrix(),
+    que deverão suceder o número em sua impressão na função matrix_table(),
     de modo a manter a formatação, seguindo uma série de critérios
 
     Números que ocupam até 6 caracteres são suportados e serão corretamente
     formatados
+====================
 */
 
 int matrix_table_string_length ( float n ) {
@@ -334,10 +339,12 @@ int matrix_table_string_length ( float n ) {
 }
 
 /*
-    matrix_print()
-
+====================
+matrix_print()
+    
     imprime os dados da matriz recebida no mesmo formato da entrada de
     matrix_create()
+====================
 */
 
 void matrix_print( Matrix* m ) {
@@ -366,9 +373,11 @@ void matrix_print( Matrix* m ) {
 }
 
 /*
-    matrix_getelem()
+====================
+matrix_getelem()
 
     Retorna o dado armazenado na posição (x, y) da matriz (x = linha, y = coluna)
+====================
 */
 
 float matrix_getelem( Matrix* m, int x, int y ) {
@@ -385,10 +394,12 @@ float matrix_getelem( Matrix* m, int x, int y ) {
 }
 
 /*
-    matrix_setelem()
+====================
+matrix_setelem()
 
     Altera o dado armazenado na posição (x, y) da matriz (x = linha, y = coluna)
     pelo dado recebido em elem
+====================
 */
 
 void matrix_setelem( Matrix* m, int x, int y, float elem ) {
@@ -404,7 +415,8 @@ void matrix_setelem( Matrix* m, int x, int y, float elem ) {
 }
 
 /*
-    matrix_destroy()
+====================
+matrix_destroy()
 
     Função responsável por liberar os espaços de memória que estão alocando
     os dados de uma matriz (Exclui uma matriz). utiliza-se a coluna -1 como
@@ -417,6 +429,7 @@ void matrix_setelem( Matrix* m, int x, int y, float elem ) {
 
     2) As checagens de "temp != m" são especialmente importantes para
     evitar acesso indevido de memória
+====================
 */
 
 void matrix_destroy( Matrix* m ) {
@@ -442,7 +455,6 @@ void matrix_destroy( Matrix* m ) {
         }
     }
 
-    printf( "\n" );
     firstIteration = 1;
     temp = m->below;
     eraser = m;
@@ -470,9 +482,11 @@ void matrix_destroy( Matrix* m ) {
 //  - Nomes iniciados por "test"
 
 /*
-    test_print_line()
+====================
+test_print_line()
 
     printa uma linha da matriz, recebendo como entrada sua cabeça
+====================
 */
 
 void test_print_line ( Matrix *mHead ) {
@@ -487,9 +501,11 @@ void test_print_line ( Matrix *mHead ) {
 }
 
 /*
-    test_print_column()
+====================
+test_print_column()
 
     printa uma coluna da matriz, recebendo como entrada sua cabeça
+====================
 */
 
 void test_print_column ( Matrix *mHead ) {
@@ -501,10 +517,12 @@ void test_print_column ( Matrix *mHead ) {
 }
 
 /*
-    test_matrix_byte_size()
+====================
+test_matrix_byte_size()
 
     retorna o tamanho em bytes da matriz (útil para verificar
     vazamentos acusados pelo Dr. Memory)
+====================
 */
 
 int test_matrix_byte_size( Matrix* mMasterHead ) {
