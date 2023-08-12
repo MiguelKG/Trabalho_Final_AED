@@ -49,6 +49,7 @@ int main () {
 /*
 ====================
 matrix_create()
+
     Cria uma matriz de acordo com inputs do usuário
 ====================
 */
@@ -236,6 +237,7 @@ Matrix* matrix_create( void ) {
 /*
 ====================
 matrix_table()
+
     Printa a matrix inteira como uma tabela no console
 ====================
 */
@@ -298,6 +300,7 @@ void matrix_table( Matrix *mMasterHead ) {
 /*
 ====================
 matrix_table_string_length()
+
     Função que recebe um valor da matriz e retorna a quantidade de espaços
     que deverão suceder o número em sua impressão na função matrix_table(),
     de modo a manter a formatação, seguindo uma série de critérios
@@ -348,6 +351,7 @@ int matrix_table_string_length ( float n ) {
 /*
 ====================
 matrix_internal_create()
+
     Utilizada para criar matrizes internamente em outras funções
 ====================
 */
@@ -399,6 +403,7 @@ Matrix* matrix_internal_create( int lines, int columns ) {
 /*
 ====================
 matrix_internal_add_node()
+
     Utilizada para adicionar nodos a matrizes criadas
     internamente em outras funções
 ====================
