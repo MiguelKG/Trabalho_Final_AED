@@ -22,7 +22,6 @@ float matrix_getelem( Matrix* m, int x, int y );
 void matrix_setelem( Matrix* m, int x, int y, float elem );
 
 void matrix_table( Matrix *mMasterHead );
-int matrix_table_string_length( float n );
 Matrix* matrix_internal_create( int lines, int columns );
 void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value );
 
