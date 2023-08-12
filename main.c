@@ -35,12 +35,7 @@ int test_matrix_byte_size( Matrix* mMasterHead );
 //  Main
 
 int main () {
-    Matrix *matrix = matrix_internal_create( 5, 5 );
-    matrix_internal_add_node( matrix, 1, 1, 1 );
-    matrix_internal_add_node( matrix, 1, 1, 5 );
-    matrix_internal_add_node( matrix, 1, 5, 2 );
-    matrix_internal_add_node( matrix, 5, 1, 4 );
-    matrix_internal_add_node( matrix, 3, 3, 3 );
+    Matrix *matrix = matrix_create();
     matrix_destroy( matrix );
 }
 
@@ -244,7 +239,6 @@ matrix_table()
 
 void matrix_table( Matrix *mMasterHead ) {
     int maxElements = 0;    //  Número de colunas da matrix
-    int spaces = 0;         //  Armazena o resultado de matrix_table_string_length()
     int i = 1;              //  Contador da quantidade de dados por linha
     Matrix *temp;
 
@@ -259,33 +253,26 @@ void matrix_table( Matrix *mMasterHead ) {
     i = 1;
     while ( temp != mMasterHead ) {
         while ( i <= maxElements ) {
+            
             if ( temp->line == -1 ) {
-                spaces = matrix_table_string_length( temp->column );
-                printf( "%d", temp->column );
+                printf( "%*d", -6, temp->column );
                 temp = temp->right;
             } else
             if ( temp->column == -1 && i == 0) {
-                spaces = matrix_table_string_length( temp->line );
-                printf( "|%d", temp->line );
+                printf( "|%*d", -6, temp->line );
                 temp = temp->right;
             } else
             if ( i == temp->column ) {
-                spaces = matrix_table_string_length( temp->info );
                 if ( fmod( temp->info, 1 ) == 0 ) {
-                    printf( "%.0f", temp->info );
+                    printf( "%*.0f", -6, temp->info );
                 } else {
-                    printf( "%.2f", temp->info );
+                    printf( "%*.2f", 6, temp->info );
                 }
                 temp = temp->right;
             } else {
-                spaces = 5;
-                printf( "0" );
+                printf( "0     " );
             }
 
-            while ( spaces != 0 ) {
-                printf( " " );
-                spaces--;
-            }
             printf( "|" );
             i++;
         }
@@ -295,57 +282,6 @@ void matrix_table( Matrix *mMasterHead ) {
         printf( "\n" );
     }
     printf( "\n" );
-}
-
-/*
-====================
-matrix_table_string_length()
-
-    Função que recebe um valor da matriz e retorna a quantidade de espaços
-    que deverão suceder o número em sua impressão na função matrix_table(),
-    de modo a manter a formatação, seguindo uma série de critérios
-
-    Números que ocupam até 6 caracteres são suportados e serão corretamente
-    formatados
-====================
-*/
-
-int matrix_table_string_length ( float n ) {
-    if ( n > 0 ) {
-        if ( fmod( n, 1 ) == 0 ) {
-            if ( n >= 100 ) {
-                return 3;   // 000XXX
-            } else if ( n >= 10 ) {
-                return 4;   // 00XXXX
-            } else {
-                return 5;   // 0XXXXX
-            }
-        } else {
-            if ( n >= 100 ) {
-                return 0;   // 000.00
-            } else if ( n >= 10 ) {
-                return 1;   // 00.00X
-            } else {
-                return 2;   // 0.00XX
-            }
-        }
-    } else {
-        if ( fmod( n, 1 ) == 0 ) {
-            if ( n <= -100 ) {
-                return 2;   // -000XX
-            } else if ( n <= -10 ) {
-                return 3;   // -00XXX
-            } else {    
-                return 4;   // -0XXXX
-            }
-        } else {
-            if ( n <= -10 ) {
-                return 0;   // -00.00
-            } else {
-                return 1;   // -0.00X
-            }
-        }
-    }
 }
 
 /*
