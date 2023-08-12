@@ -20,8 +20,11 @@ void matrix_destroy( Matrix* m );
 void matrix_print( Matrix* m );
 float matrix_getelem( Matrix* m, int x, int y );
 void matrix_setelem( Matrix* m, int x, int y, float elem );
+
 void matrix_table( Matrix *mMasterHead );
 int matrix_table_string_length( float n );
+Matrix* matrix_internal_create( int lines, int columns );
+void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value );
 
 //  Declaração de funções de debug ( REMOVER ANTES DE ENTREGAR )
 
@@ -32,7 +35,12 @@ int test_matrix_byte_size( Matrix* mMasterHead );
 //  Main
 
 int main () {
-    Matrix *matrix = matrix_create();
+    Matrix *matrix = matrix_internal_create( 5, 5 );
+    matrix_internal_add_node( matrix, 1, 1, 1 );
+    matrix_internal_add_node( matrix, 1, 1, 5 );
+    matrix_internal_add_node( matrix, 1, 5, 2 );
+    matrix_internal_add_node( matrix, 5, 1, 4 );
+    matrix_internal_add_node( matrix, 3, 3, 3 );
     matrix_destroy( matrix );
 }
 
@@ -54,13 +62,14 @@ Matrix* matrix_create( void ) {
         que estão sendo iteradas, tempPrev serve para situações em que é necessário
         guardar um valor anterior de temp durante a iteração
     */
+    int i;
     Matrix *temp = NULL;        
     Matrix *tempPrev;
     Matrix *mHeadLine, *mHeadColumn; // matrix head line, matrix head column
 
     //  Definição da cabeça principal (indíce 0 - 0)
 
-    Matrix* mMasterHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+    Matrix *mMasterHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
     mMasterHead->below = mMasterHead;
     mMasterHead->right = mMasterHead;
     mMasterHead->line = -1;
@@ -80,8 +89,6 @@ Matrix* matrix_create( void ) {
         as conectam (construindo a matriz vazia), conforme o número de linhas
         e colunas informados pelo usuário
     */
-
-    int i;
     
     //  Criação das cabeças de cada linha
     
@@ -336,6 +343,123 @@ int matrix_table_string_length ( float n ) {
             }
         }
     }
+}
+
+/*
+====================
+matrix_internal_create()
+    Utilizada para criar matrizes internamente em outras funções
+====================
+*/
+
+Matrix* matrix_internal_create( int lines, int columns ) {
+    Matrix *mMasterHead;
+    Matrix *temp;
+    int i;
+
+    //  Definição da cabeça principal (indíce 0 - 0)
+
+    mMasterHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+    mMasterHead->below = mMasterHead;
+    mMasterHead->right = mMasterHead;
+    mMasterHead->line = -1;
+    mMasterHead->column = -1;
+
+    //  Criação das cabeças de cada linha
+    
+    temp = mMasterHead;
+    for ( i = 1; i <= lines; i++ ) {
+        Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+        mHead->line = i;
+        mHead->column = -1;
+        mHead->below = mMasterHead;
+        mHead->right = mHead;
+
+        temp->below = mHead;
+        temp = temp->below;
+    }
+
+    //  Criação das cabeças de cada coluna
+
+    temp = mMasterHead;
+    for ( i = 1; i <= columns; i++ ) {
+        Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+        mHead->column = i;
+        mHead->line = -1;
+        mHead->right = mMasterHead;
+        mHead->below = mHead;
+
+        temp->right = mHead;
+        temp = temp->right;
+    }
+
+    return mMasterHead;
+}
+
+/*
+====================
+matrix_internal_add_node()
+    Utilizada para adicionar nodos a matrizes criadas
+    internamente em outras funções
+====================
+*/
+
+void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value ) {
+
+    Matrix *node = ( Matrix * ) malloc ( sizeof( Matrix ) );
+    Matrix *mHeadLine;
+    Matrix *mHeadColumn;
+    Matrix *temp;
+    Matrix *tempPrev;
+    int i;
+
+    //  Criação de um novo nodo
+
+    node->line = line;
+    node->column = column;
+    node->info = value;
+    node->right = NULL;
+    node->below = NULL;
+
+    //  Encontra a cabeça da linha do novo nodo
+
+    temp = mMasterHead;
+    for ( i = 1; i <= line; i++ ) {
+        temp = temp->below;
+    }
+    mHeadLine = temp;
+
+    //  Encontra a cabeça da coluna do novo nodo
+
+    temp = mMasterHead;
+    for ( i = 1; i <= column; i++ ) {
+        temp = temp->right;
+    }
+    mHeadColumn = temp;
+
+    /*
+        As repetições a seguir são responsáveis por encontrar o nodo que será precedido
+        e o que será sucedido pelo novo nodo adicionado. A primeira checa as linhas e a
+        segunda as colunas
+    */
+
+    for (
+        temp = mHeadLine->right, tempPrev = mHeadLine;
+        temp != mHeadLine && temp->column < node->column;
+        tempPrev = temp, temp = temp->right
+    );
+
+    tempPrev->right = node;
+    node->right = temp;
+
+    for (
+        temp = mHeadColumn->below, tempPrev = mHeadColumn;
+        temp != mHeadColumn && temp->line < node->line;
+        tempPrev = temp, temp = temp->below
+    );
+
+    tempPrev->below = node;
+    node->below = temp;
 }
 
 /*
