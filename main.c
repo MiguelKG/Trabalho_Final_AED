@@ -20,6 +20,7 @@ void matrix_destroy( Matrix* m );
 void matrix_print( Matrix* m );
 float matrix_getelem( Matrix* m, int x, int y );
 void matrix_setelem( Matrix* m, int x, int y, float elem );
+Matrix* matrix_transpose( Matrix* m );
 
 void matrix_table( Matrix *mMasterHead );
 Matrix* matrix_internal_create( int lines, int columns );
@@ -35,10 +36,53 @@ int test_matrix_byte_size( Matrix* mMasterHead );
 
 int main () {
     Matrix *matrix = matrix_create();
+    Matrix *transposedMatrix = matrix_transpose( matrix );
+    matrix_table( transposedMatrix );
     matrix_destroy( matrix );
+    matrix_destroy( transposedMatrix );
 }
 
 //  Definição de funções
+
+/*
+====================
+matrix_transpose()
+
+    Retorna a transposta da matriz passada como argumento
+====================
+*/
+
+Matrix* matrix_transpose( Matrix* m ) {
+    Matrix *temp;
+    Matrix *transposedMatrix;
+    Matrix *mHead;
+
+    int x = 0, y = 0;
+
+    for ( temp = m->below; temp != m; temp = temp->below, x++ );
+    for ( temp = m->right; temp != m; temp = temp->right, y++ );
+
+    transposedMatrix = matrix_internal_create( y, x );
+
+    mHead = m->below;
+    temp = m->below->right;
+    while ( temp != m ) {
+
+        if ( temp->column != -1 ) {
+            matrix_internal_add_node ( transposedMatrix, temp->column, temp->line, temp->info );
+        }
+
+        if ( temp->right == mHead ) {
+            temp = temp->right;
+            temp = temp->below;
+            mHead = temp;
+        } else {
+            temp = temp->right;
+        }
+    }
+
+    return transposedMatrix;
+}
 
 /*
 ====================
