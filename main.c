@@ -36,53 +36,11 @@ int test_matrix_byte_size( Matrix* mMasterHead );
 
 int main () {
     Matrix *matrix = matrix_create();
-    Matrix *transposedMatrix = matrix_transpose( matrix );
-    matrix_table( transposedMatrix );
+    matrix_print( matrix );
     matrix_destroy( matrix );
-    matrix_destroy( transposedMatrix );
 }
 
 //  Definição de funções
-
-/*
-====================
-matrix_transpose()
-
-    Retorna a transposta da matriz passada como argumento
-====================
-*/
-
-Matrix* matrix_transpose( Matrix* m ) {
-    Matrix *temp;
-    Matrix *transposedMatrix;
-    Matrix *mHead;
-
-    int x = 0, y = 0;
-
-    for ( temp = m->below; temp != m; temp = temp->below, x++ );
-    for ( temp = m->right; temp != m; temp = temp->right, y++ );
-
-    transposedMatrix = matrix_internal_create( y, x );
-
-    mHead = m->below;
-    temp = m->below->right;
-    while ( temp != m ) {
-
-        if ( temp->column != -1 ) {
-            matrix_internal_add_node ( transposedMatrix, temp->column, temp->line, temp->info );
-        }
-
-        if ( temp->right == mHead ) {
-            temp = temp->right;
-            temp = temp->below;
-            mHead = temp;
-        } else {
-            temp = temp->right;
-        }
-    }
-
-    return transposedMatrix;
-}
 
 /*
 ====================
@@ -136,12 +94,12 @@ Matrix* matrix_create( void ) {
         Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
         mHead->line = i;
         mHead->column = -1;
-        mHead->below = mMasterHead;
         mHead->right = mHead;
 
         temp->below = mHead;
         temp = temp->below;
     }
+    temp->below = mMasterHead;
 
     //  Criação das cabeças de cada coluna
 
@@ -150,12 +108,12 @@ Matrix* matrix_create( void ) {
         Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
         mHead->column = i;
         mHead->line = -1;
-        mHead->right = mMasterHead;
         mHead->below = mHead;
 
         temp->right = mHead;
         temp = temp->right;
     }
+    temp->right = mMasterHead;
 
     printf( "\ndigite a linha e a coluna da tabela, seguido do valor armazenado: \n" );
     printf( "(Digite 0 para cancelar a qualquer momento)\n" );
@@ -309,7 +267,7 @@ void matrix_table( Matrix *mMasterHead ) {
                 if ( fmod( temp->info, 1 ) == 0 ) {
                     printf( "%*.0f", -6, temp->info );
                 } else {
-                    printf( "%*.2f", 6, temp->info );
+                    printf( "%*.2f", -6, temp->info );
                 }
                 temp = temp->right;
             } else {
@@ -355,12 +313,12 @@ Matrix* matrix_internal_create( int lines, int columns ) {
         Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
         mHead->line = i;
         mHead->column = -1;
-        mHead->below = mMasterHead;
         mHead->right = mHead;
 
         temp->below = mHead;
         temp = temp->below;
     }
+    temp->below = mMasterHead;
 
     //  Criação das cabeças de cada coluna
 
@@ -369,12 +327,12 @@ Matrix* matrix_internal_create( int lines, int columns ) {
         Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
         mHead->column = i;
         mHead->line = -1;
-        mHead->right = mMasterHead;
         mHead->below = mHead;
 
         temp->right = mHead;
         temp = temp->right;
     }
+    temp->right = mMasterHead;
 
     return mMasterHead;
 }
@@ -467,7 +425,11 @@ void matrix_print( Matrix* m ) {
     mHead = m->below;
     while ( temp != m ) {
         if ( temp->column != -1 ) {
-            printf( "%d %d %.2f\n", temp->line, temp->column, temp->info );
+            if ( fmod(temp->info, 1) == 0 ) {
+                printf( "%d %d %.0f\n", temp->line, temp->column, temp->info );
+            } else {
+                printf( "%d %d %.2f\n", temp->line, temp->column, temp->info );
+            }
         }
 
         if ( temp->right == mHead ) {
@@ -583,6 +545,46 @@ void matrix_destroy( Matrix* m ) {
     }
 
     free(m);
+}
+
+/*
+====================
+matrix_transpose()
+
+    Retorna a transposta da matriz passada como argumento
+====================
+*/
+
+Matrix* matrix_transpose( Matrix* m ) {
+    Matrix *temp;
+    Matrix *transposedMatrix;
+    Matrix *mHead;
+
+    int x = 0, y = 0;
+
+    for ( temp = m->below; temp != m; temp = temp->below, x++ );
+    for ( temp = m->right; temp != m; temp = temp->right, y++ );
+
+    transposedMatrix = matrix_internal_create( y, x );
+
+    mHead = m->below;
+    temp = m->below->right;
+    while ( temp != m ) {
+
+        if ( temp->column != -1 ) {
+            matrix_internal_add_node ( transposedMatrix, temp->column, temp->line, temp->info );
+        }
+
+        if ( temp->right == mHead ) {
+            temp = temp->right;
+            temp = temp->below;
+            mHead = temp;
+        } else {
+            temp = temp->right;
+        }
+    }
+
+    return transposedMatrix;
 }
 
 //  << REMOVER ANTES DE ENTREGAR >>
