@@ -19,7 +19,7 @@ void matrix_print( Matrix* m );
 void matrix_table( Matrix *mMasterHead );
 
 int main () {
-    Matrix *matrix = matrix_create( 10 );
+    Matrix *matrix = matrix_create( 15 );
     matrix_print( matrix );
     matrix_table( matrix );
     matrix_destroy( matrix );
@@ -74,7 +74,7 @@ Matrix* matrix_create( unsigned int m ) {
     temp2->right = mMasterHead;
 
     x = 1;
-    srand(time(NULL));
+    srand( time( NULL ) );
     temp = mMasterHead->below;
     temp2 = mMasterHead->right;
     mHead = mMasterHead->below;
@@ -83,7 +83,7 @@ Matrix* matrix_create( unsigned int m ) {
         Matrix *node = ( Matrix * ) malloc ( sizeof(Matrix) );
         node->column = temp2->column;
         node->line = temp->line;
-        node->info = rand() % 100 + 1;
+        node->info = rand() % 101;
         node->below = temp2;
         
         temp->right = node;
@@ -269,5 +269,5 @@ void matrix_destroy( Matrix* m ) {
         }
     }
 
-    free(m);
+    free( m );
 }

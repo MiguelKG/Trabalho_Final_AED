@@ -544,7 +544,7 @@ void matrix_destroy( Matrix* m ) {
         }
     }
 
-    free(m);
+    free( m );
 }
 
 /*
