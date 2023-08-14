@@ -13,7 +13,7 @@ struct matrix {
 typedef struct matrix Matrix;
 
 Matrix* matrix_create( unsigned int m );
-Matrix* matrix_create_100mb( unsigned int m );
+Matrix* matrix_create_100mb( void );
 void matrix_destroy( Matrix* m );
 void matrix_print( Matrix* m );
 void matrix_table( Matrix *mMasterHead );
@@ -114,8 +114,10 @@ matrix_create_100mb()
 ====================
 */
 
-Matrix* matrix_create_100mb( unsigned int m ) {
-    return matrix_create( 3125000 );
+Matrix* matrix_create_100mb( void ) {
+    return matrix_create( 1768 );
+    // raiz de 3125000
+    // 3125000 = ( 100 * ( 1000000 bytes ) ) / sizeof( Matrix )
 }
 
 /*
