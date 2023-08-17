@@ -86,16 +86,13 @@ Matrix* matrix_create( unsigned int m ) {
         Matrix *node = ( Matrix * ) malloc ( sizeof(Matrix) );
         node->column = temp2->column;
         node->line = temp->line;
-        //Velho
-        node->info = rand() % 101;
-        /*
-        //Novo
-        if ( rand() % 2 == 0 ){
-            node->info = 0;
-        } else {
+
+        if ( rand() % 2 != 0 && rand() % 2 != 0 ){
             node->info = rand() % 100 + 1;
+        } else {
+            node->info = 0;
         }
-        */
+
         node->below = temp2;
         
         temp->right = node;

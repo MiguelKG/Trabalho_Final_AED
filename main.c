@@ -37,8 +37,15 @@ int test_matrix_byte_size( Matrix* mMasterHead );
 //  Main
 
 int main () {
-    Matrix *matrix = matrix_create();
-    matrix_print( matrix );
+    Matrix *matrix = matrix_internal_create( 5, 5 );
+    Matrix *matrix2 = matrix_internal_create( 7, 4 );
+    matrix_internal_add_node( matrix, 1, 5, 24 );
+    matrix_internal_add_node( matrix, 2, 2, 4 );
+    matrix_internal_add_node( matrix2, 2, 2, 7 );
+    matrix_internal_add_node( matrix, 3, 5, 78 );
+    matrix_internal_add_node( matrix2, 5, 2, 7337 );
+    Matrix *matrixSum = matrix_add( matrix, matrix2 );
+    matrix_table( matrixSum );
     matrix_destroy( matrix );
 }
 
@@ -557,14 +564,74 @@ matrix_add
 ====================
 */
 
-Matrix* matrix_add( Matrix* m, Matrix* n ){
-    int modeManageMemory ,x = 0 ,y = 0;
+Matrix* matrix_add( Matrix* m, Matrix* n ) {
+    Matrix *temp;
+    Matrix *temp2;
+    Matrix *mAdd;
+
+    int maxLineSize = 0;
+    int maxColumnSize = 0;
+
+    temp = m->right;
+    temp2 = n->right;
+
+    while ( temp != m || temp2 != n ) { 
+        maxLineSize++;
+        if ( temp != m ) {
+            temp = temp->right;
+        }
+        if ( temp2 != n ) {
+            temp2 = temp2->right;
+        }
+    }
+
+    temp = m->below;
+    temp2 = n->below;
+
+    while ( temp != m || temp2 != n ) { 
+        maxColumnSize++;
+        if ( temp != m ) {
+            temp = temp->below;
+        }
+        if ( temp2 != n ) {
+            temp2 = temp2->below;
+        }
+    }
+
+    mAdd = matrix_internal_create( maxLineSize, maxColumnSize );
+
+    temp = m->below;
+    temp2 = n->below;
+
+    while ( temp != m ) {
+        temp = temp->right;
+        temp2 = temp2->right;
+        for ( int i = 1; i <= maxLineSize; i++ ) {
+            if ( i == temp->column && i == temp2->column ) {
+                matrix_internal_add_node( mAdd, temp->line, i, temp->info + temp2->info );
+                temp = temp->right;
+                temp2 = temp2->right;
+            } else if ( i == temp->column ) {
+                matrix_internal_add_node( mAdd, temp->line, i, temp->info );
+                temp = temp->right;
+            } else if ( i == temp2->column ) {
+                matrix_internal_add_node( mAdd, temp2->line, i, temp2->info );
+                temp2 = temp2->right;
+            }
+        }
+        temp = temp->below;
+        temp2 = temp2->below;
+    }
+
+    return mAdd;
+
+    /*int modeManageMemory ,x = 0 ,y = 0;
     int xM=0 ,xN=0 ,yM=0 ,yN=0;
-    /*
+    
         Modo 0, avanca o endereço temporario em m e n
         Modo 1, avanca o endereço temporario em n
         Modo 2, avanca o endereço temporario em m
-    */
+    
     Matrix *mTemp, *mHead;
     Matrix *nTemp, *nHead;
     for ( mTemp = m->right; mTemp != m; mTemp = mTemp->right, xM++ );
@@ -647,7 +714,7 @@ Matrix* matrix_add( Matrix* m, Matrix* n ){
             };
         }
     }while ( mTemp != m || nTemp != n );
-    return matrixFinal;
+    return matrixFinal;*/
 }
 
 /*
@@ -658,54 +725,61 @@ matrix_multiply()
 ====================
 */
 
-Matrix* matrix_multiply( Matrix* m, Matrix* n ){
+Matrix* matrix_multiply( Matrix* m, Matrix* n ) {
     int x = 0, y = 0, tempForSum = 0;
     int tempX = 0, tempY = 0;
+
     Matrix *mTemp, *mHead;
     Matrix *nTemp, *nHead;
+    Matrix *finalMatrix;
+
     for ( nTemp = n->right; nTemp != n; nTemp = nTemp->right, x++ );
     for ( mTemp = m->below; mTemp != m; mTemp = mTemp->below, y++ );
-    Matrix *finalMatrix = matrix_internal_create( y, x );
+
+    finalMatrix = matrix_internal_create( y, x );
+
     mHead = m->below;
     mTemp = mHead->right;
     nHead = n->right;
     nTemp = nHead->below;
-    do{
-        if( nTemp != nHead && mTemp != mHead ){
-            if( mTemp->column == nTemp->line ){
+
+    do {
+        if ( nTemp != nHead && mTemp != mHead ) {
+            if ( mTemp->column == nTemp->line ) {
                 tempForSum += mTemp->info * nTemp->info;
                 tempX = mTemp->line;
                 tempY = nTemp->column;
                 mTemp = mTemp->right;
                 nTemp = nTemp->below;
-        }else{
-            if(mTemp->column < nTemp->line){ 
-                mTemp = mTemp->right;
-            }else if ( nTemp->line < mTemp->column ){
-                nTemp = nTemp->below;
-            }else{
-                mTemp = mTemp->right;
-                nTemp = nTemp->below;
+            } else {
+                if ( mTemp->column < nTemp->line ) { 
+                    mTemp = mTemp->right;
+                } else if ( nTemp->line < mTemp->column ){
+                    nTemp = nTemp->below;
+                } else {
+                    mTemp = mTemp->right;
+                    nTemp = nTemp->below;
+                }
             }
-        }
         } else {
             if ( tempForSum != 0 ) {
                 matrix_internal_add_node( finalMatrix ,tempX ,tempY ,tempForSum );
                 tempForSum = 0;
+            }
+            if ( mHead->below == m  && nHead != n) {
+                nHead = nHead->right;
+                nTemp = nHead->below;
+                mHead = m->below;
+                mTemp = mHead->right; 
+            } else {
+                mHead = mHead->below;
+                mTemp = mHead->right;
+                nTemp = nHead->below;
+            }
         }
-        if ( mHead->below == m  && nHead != n) {
-            nHead = nHead->right;
-            nTemp = nHead->below;
-            mHead = m->below;
-            mTemp = mHead->right; 
-        } else {
-            mHead = mHead->below;
-            mTemp = mHead->right;
-            nTemp = nHead->below;
-        }
-    }
-}while( nHead != n );
-return finalMatrix;
+    } while ( nHead != n );
+
+    return finalMatrix;
 }
 
 /*
