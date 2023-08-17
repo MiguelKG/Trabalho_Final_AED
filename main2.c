@@ -17,6 +17,9 @@ Matrix* matrix_create_100mb( void );
 void matrix_destroy( Matrix* m );
 void matrix_print( Matrix* m );
 void matrix_table( Matrix *mMasterHead );
+Matrix* matrix_multiply( Matrix* m, Matrix* n );
+void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value );
+Matrix* matrix_internal_create( int lines, int columns );
 
 int main () {
     Matrix *matrix = matrix_create( 15 );
@@ -83,7 +86,16 @@ Matrix* matrix_create( unsigned int m ) {
         Matrix *node = ( Matrix * ) malloc ( sizeof(Matrix) );
         node->column = temp2->column;
         node->line = temp->line;
+        //Velho
         node->info = rand() % 101;
+        /*
+        //Novo
+        if ( rand() % 2 == 0 ){
+            node->info = 0;
+        } else {
+            node->info = rand() % 100 + 1;
+        }
+        */
         node->below = temp2;
         
         temp->right = node;
@@ -104,6 +116,63 @@ Matrix* matrix_create( unsigned int m ) {
     }
 
     return mMasterHead;
+}
+
+/*
+====================
+matrix_multiply()
+
+    Retorna a multiplicação de duas matrizes introduzidas, considerando que as matrizes tem tamanho igual
+====================
+*/
+
+Matrix* matrix_multiply( Matrix* m, Matrix* n ){
+    int x = 0, tempForSum = 0;
+    int tempX = 0, tempY = 0;
+    Matrix *mTemp, *mHead;
+    Matrix *nTemp, *nHead;
+    for ( nTemp = n->right; nTemp != n; nTemp = nTemp->right, x++ );
+    Matrix *finalMatrix = matrix_internal_create(x,x);
+    mHead = m->below;
+    mTemp = mHead->right;
+    nHead = n->right;
+    nTemp = nHead->below;
+    do{
+        if( nTemp != nHead && mTemp != mHead ){
+            if( mTemp->column == nTemp->line ){
+                tempForSum += mTemp->info * nTemp->info;
+                tempX = mTemp->line;
+                tempY = nTemp->column;
+                mTemp = mTemp->right;
+                nTemp = nTemp->below;
+        }else{
+            if(mTemp->column < nTemp->line){ 
+                mTemp = mTemp->right;
+            }else if ( nTemp->line < mTemp->column ){
+                nTemp = nTemp->below;
+            }else{
+                mTemp = mTemp->right;
+                nTemp = nTemp->below;
+            }
+        }
+        } else {
+            if ( tempForSum != 0 ) {
+                matrix_internal_add_node( finalMatrix ,tempX ,tempY ,tempForSum );
+                tempForSum = 0;
+        }
+        if ( mHead->below == m  && nHead != n) {
+            nHead = nHead->right;
+            nTemp = nHead->below;
+            mHead = m->below;
+            mTemp = mHead->right; 
+        } else {
+            mHead = mHead->below;
+            mTemp = mHead->right;
+            nTemp = nHead->below;
+        }
+    }
+}while( nHead != n );
+return finalMatrix;
 }
 
 /*
@@ -272,4 +341,106 @@ void matrix_destroy( Matrix* m ) {
     }
 
     free( m );
+}
+
+void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value ) {
+
+    Matrix *node = ( Matrix * ) malloc ( sizeof( Matrix ) );
+    Matrix *mHeadLine;
+    Matrix *mHeadColumn;
+    Matrix *temp;
+    Matrix *tempPrev;
+    int i;
+
+    //  Criação de um novo nodo
+
+    node->line = line;
+    node->column = column;
+    node->info = value;
+    node->right = NULL;
+    node->below = NULL;
+
+    //  Encontra a cabeça da linha do novo nodo
+
+    temp = mMasterHead;
+    for ( i = 1; i <= line; i++ ) {
+        temp = temp->below;
+    }
+    mHeadLine = temp;
+
+    //  Encontra a cabeça da coluna do novo nodo
+
+    temp = mMasterHead;
+    for ( i = 1; i <= column; i++ ) {
+        temp = temp->right;
+    }
+    mHeadColumn = temp;
+
+    /*
+        As repetições a seguir são responsáveis por encontrar o nodo que será precedido
+        e o que será sucedido pelo novo nodo adicionado. A primeira checa as linhas e a
+        segunda as colunas
+    */
+
+    for (
+        temp = mHeadLine->right, tempPrev = mHeadLine;
+        temp != mHeadLine && temp->column < node->column;
+        tempPrev = temp, temp = temp->right
+    );
+
+    tempPrev->right = node;
+    node->right = temp;
+
+    for (
+        temp = mHeadColumn->below, tempPrev = mHeadColumn;
+        temp != mHeadColumn && temp->line < node->line;
+        tempPrev = temp, temp = temp->below
+    );
+
+    tempPrev->below = node;
+    node->below = temp;
+}
+
+Matrix* matrix_internal_create( int lines, int columns ) {
+    Matrix *mMasterHead;
+    Matrix *temp;
+    int i;
+
+    //  Definição da cabeça principal (indíce 0 - 0)
+
+    mMasterHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+    mMasterHead->below = mMasterHead;
+    mMasterHead->right = mMasterHead;
+    mMasterHead->line = -1;
+    mMasterHead->column = -1;
+
+    //  Criação das cabeças de cada linha
+    
+    temp = mMasterHead;
+    for ( i = 1; i <= lines; i++ ) {
+        Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+        mHead->line = i;
+        mHead->column = -1;
+        mHead->right = mHead;
+
+        temp->below = mHead;
+        temp = temp->below;
+    }
+    temp->below = mMasterHead;
+
+    //  Criação das cabeças de cada coluna
+
+    temp = mMasterHead;
+    for ( i = 1; i <= columns; i++ ) {
+        Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
+        mHead->column = i;
+        mHead->line = -1;
+        mHead->below = mHead;
+
+        temp->right = mHead;
+        temp = temp->right;
+    }
+    temp->right = mMasterHead;
+
+    return mMasterHead;
 }

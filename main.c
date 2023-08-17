@@ -558,15 +558,15 @@ matrix_add
 */
 
 Matrix* matrix_add( Matrix* m, Matrix* n ){
-
-    int modeManageMemory, x = 0 ,y = 0;
-    int xM=0,xN=0,yM=0,yN=0;
-    // Modo 0, avanca o endereço temporario em m e n
-    // Modo 1, avanca o endereço temporario em n
-    // Modo 2, avanca o endereço temporario em m
+    int modeManageMemory ,x = 0 ,y = 0;
+    int xM=0 ,xN=0 ,yM=0 ,yN=0;
+    /*
+        Modo 0, avanca o endereço temporario em m e n
+        Modo 1, avanca o endereço temporario em n
+        Modo 2, avanca o endereço temporario em m
+    */
     Matrix *mTemp, *mHead;
     Matrix *nTemp, *nHead;
-
     for ( mTemp = m->right; mTemp != m; mTemp = mTemp->right, xM++ );
     for ( nTemp = n->right; nTemp != n; nTemp = nTemp->right, xN++ );
     if ( xM < xN ){
@@ -582,22 +582,19 @@ Matrix* matrix_add( Matrix* m, Matrix* n ){
         y = yM;
     }
     Matrix *matrixFinal = matrix_internal_create( y, x );
-    
     mTemp = m->below;
     mHead = m->below;
-    
     nTemp = n->below;
     nHead = n->below;
-
     modeManageMemory = 0;
     do{
     switch ( modeManageMemory ){
         case 0:
             do{
             if ( mTemp->right == mHead ) {
-                mTemp = mTemp->right; //Fique no lugar da cabeca antiga
-                mTemp = mTemp->below;//Va para a linha abaixo
-                mHead = mTemp; //cabeça da linha é igual a head
+                mTemp = mTemp->right; 
+                mTemp = mTemp->below;
+                mHead = mTemp;
             } else if( mTemp->line != -1 ){
                 mTemp = mTemp->right;
             }
@@ -612,7 +609,7 @@ Matrix* matrix_add( Matrix* m, Matrix* n ){
                 nTemp = nTemp->right;
             }
             } while ( nTemp->column < 1 && nTemp != n );
-            break;
+                break;
         case 2:
             do{
             if ( mTemp->right == mHead ) {
@@ -623,7 +620,7 @@ Matrix* matrix_add( Matrix* m, Matrix* n ){
                 mTemp = mTemp->right;
             }
             }while( mTemp->column < 1 && mTemp != m );
-            break;
+                break;
         }
         if( mTemp != m || nTemp != n ){
             if( mTemp == m ){
@@ -635,13 +632,13 @@ Matrix* matrix_add( Matrix* m, Matrix* n ){
             }else if ( mTemp->line == nTemp->line && mTemp->column == nTemp->column ) {
                 matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info + nTemp->info );
                 modeManageMemory = 0;
-            }else if ( mTemp->line < nTemp->line ) { //else: n não tem coluna e linha igual
+            }else if ( mTemp->line < nTemp->line ) { 
                 matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info );
                 modeManageMemory = 2;
-            }else if ( mTemp->line > nTemp->line ) { //else: n esta na linha acima
+            }else if ( mTemp->line > nTemp->line ) {
                 matrix_internal_add_node( matrixFinal , nTemp->line, nTemp->column, nTemp->info );
                 modeManageMemory = 1;
-            }else if ( mTemp->column < nTemp->column ) {//else: n é apos m em sua linha
+            }else if ( mTemp->column < nTemp->column ) {
                 matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info );
                 modeManageMemory = 2;
             }else{
@@ -655,68 +652,62 @@ Matrix* matrix_add( Matrix* m, Matrix* n ){
 
 /*
 ====================
-matrix_multiply
+matrix_multiply()
 
-    Retorna a soma de duas matrizes introduzidas
+    Retorna a multiplicação de duas matrizes introduzidas
 ====================
 */
 
 Matrix* matrix_multiply( Matrix* m, Matrix* n ){
-    int x=0,y=0, tempForSum = 0;
-    int tempX=0,tempY=0;
-
+    int x = 0, y = 0, tempForSum = 0;
+    int tempX = 0, tempY = 0;
     Matrix *mTemp, *mHead;
     Matrix *nTemp, *nHead;
-
     for ( nTemp = n->right; nTemp != n; nTemp = nTemp->right, x++ );
     for ( mTemp = m->below; mTemp != m; mTemp = mTemp->below, y++ );
-    Matrix *awser = matrix_internal_create(y, x);
-   
+    Matrix *finalMatrix = matrix_internal_create( y, x );
     mHead = m->below;
     mTemp = mHead->right;
-
     nHead = n->right;
     nTemp = nHead->below;
-
     do{
-        if(nTemp != nHead && mTemp != mHead){
-        if(mTemp->column == nTemp->line){
-            tempForSum += mTemp->info * nTemp->info;
-
-            tempX = mTemp->line;
-            tempY = nTemp->column;
-            mTemp = mTemp->right;
-            nTemp = nTemp->below;
+        if( nTemp != nHead && mTemp != mHead ){
+            if( mTemp->column == nTemp->line ){
+                tempForSum += mTemp->info * nTemp->info;
+                tempX = mTemp->line;
+                tempY = nTemp->column;
+                mTemp = mTemp->right;
+                nTemp = nTemp->below;
         }else{
             if(mTemp->column < nTemp->line){ 
                 mTemp = mTemp->right;
             }else if ( nTemp->line < mTemp->column ){
                 nTemp = nTemp->below;
             }else{
-            mTemp = mTemp->right;
-            nTemp = nTemp->below;
+                mTemp = mTemp->right;
+                nTemp = nTemp->below;
             }
-            }
-        }else{
-        if(tempForSum != 0){
-        matrix_internal_add_node(awser,tempX,tempY,tempForSum);
-        tempForSum = 0;
+        }
+        } else {
+            if ( tempForSum != 0 ) {
+                matrix_internal_add_node( finalMatrix ,tempX ,tempY ,tempForSum );
+                tempForSum = 0;
         }
         if ( mHead->below == m  && nHead != n) {
             nHead = nHead->right;
             nTemp = nHead->below;
             mHead = m->below;
             mTemp = mHead->right; 
-        }else{
-                mHead = mHead->below;
-                mTemp = mHead->right;
-                nTemp = nHead->below;
-            }
+        } else {
+            mHead = mHead->below;
+            mTemp = mHead->right;
+            nTemp = nHead->below;
+        }
     }
-}while(nHead != n);
-
-return awser;
+}while( nHead != n );
+return finalMatrix;
 }
+
 /*
 ====================
 matrix_transpose()
