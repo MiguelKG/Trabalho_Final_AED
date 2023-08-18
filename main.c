@@ -25,28 +25,40 @@ Matrix* matrix_multiply( Matrix* m, Matrix* n );
 Matrix* matrix_transpose( Matrix* m );
 
 void matrix_table( Matrix *mMasterHead );
+int matrix_byte_size( Matrix* mMasterHead );
 Matrix* matrix_internal_create( int lines, int columns );
 void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value );
-
-//  Declaração de funções de debug ( REMOVER ANTES DE ENTREGAR )
-
-void test_print_line ( Matrix *mHead );
-void test_print_column ( Matrix *mHead );
-int test_matrix_byte_size( Matrix* mMasterHead );
 
 //  Main
 
 int main () {
-    Matrix *matrix = matrix_internal_create( 5, 5 );
-    Matrix *matrix2 = matrix_internal_create( 7, 4 );
-    matrix_internal_add_node( matrix, 1, 5, 24 );
-    matrix_internal_add_node( matrix, 2, 2, 4 );
-    matrix_internal_add_node( matrix2, 2, 2, 7 );
-    matrix_internal_add_node( matrix, 3, 5, 78 );
-    matrix_internal_add_node( matrix2, 5, 2, 7337 );
-    Matrix *matrixSum = matrix_add( matrix, matrix2 );
-    matrix_table( matrixSum );
-    matrix_destroy( matrix );
+    /* Inicializacao da aplicacao ... */
+    Matrix *A = matrix_create();
+    matrix_print( A );
+    matrix_table( A );
+
+    Matrix *B = matrix_create(); 
+    matrix_print( B );
+    matrix_table( B );
+
+    Matrix *C = matrix_add( A, B ); 
+    matrix_print( C );
+    matrix_table( C );
+    matrix_destroy( C );
+
+    C = matrix_multiply( A, B ); 
+    matrix_print( C );
+    matrix_table( C );
+    matrix_destroy( C );
+
+    C = matrix_transpose( A ); 
+    matrix_print( C );
+    matrix_table( C );
+    
+    matrix_destroy( C );
+    matrix_destroy( A );
+    matrix_destroy( B );
+    return 0;
 }
 
 //  Definição de funções
@@ -558,7 +570,7 @@ void matrix_destroy( Matrix* m ) {
 
 /*
 ====================
-matrix_add
+matrix_add()
 
     Retorna a soma de duas matrizes introduzidas
 ====================
@@ -624,97 +636,6 @@ Matrix* matrix_add( Matrix* m, Matrix* n ) {
     }
 
     return mAdd;
-
-    /*int modeManageMemory ,x = 0 ,y = 0;
-    int xM=0 ,xN=0 ,yM=0 ,yN=0;
-    
-        Modo 0, avanca o endereço temporario em m e n
-        Modo 1, avanca o endereço temporario em n
-        Modo 2, avanca o endereço temporario em m
-    
-    Matrix *mTemp, *mHead;
-    Matrix *nTemp, *nHead;
-    for ( mTemp = m->right; mTemp != m; mTemp = mTemp->right, xM++ );
-    for ( nTemp = n->right; nTemp != n; nTemp = nTemp->right, xN++ );
-    if ( xM < xN ){
-        x = xN;
-    }else{
-        x = xM;
-    }
-    for ( mTemp = m->below; mTemp != m; mTemp = mTemp->below, yM++ );
-    for ( nTemp = n->below; nTemp != n; nTemp = nTemp->below, yN++ );
-    if ( yM < yN ){
-        y = yN;
-    }else{
-        y = yM;
-    }
-    Matrix *matrixFinal = matrix_internal_create( y, x );
-    mTemp = m->below;
-    mHead = m->below;
-    nTemp = n->below;
-    nHead = n->below;
-    modeManageMemory = 0;
-    do{
-    switch ( modeManageMemory ){
-        case 0:
-            do{
-            if ( mTemp->right == mHead ) {
-                mTemp = mTemp->right; 
-                mTemp = mTemp->below;
-                mHead = mTemp;
-            } else if( mTemp->line != -1 ){
-                mTemp = mTemp->right;
-            }
-            }while( mTemp->column < 1 && mTemp != m );
-        case 1:
-            do {
-            if ( nTemp->right == nHead ) {
-                nTemp = nTemp->right;
-                nTemp = nTemp->below;
-                nHead = nTemp;
-            }  else if( nTemp->line != -1){
-                nTemp = nTemp->right;
-            }
-            } while ( nTemp->column < 1 && nTemp != n );
-                break;
-        case 2:
-            do{
-            if ( mTemp->right == mHead ) {
-                mTemp = mTemp->right;
-                mTemp = mTemp->below;
-                mHead = mTemp;
-            } else if( mTemp->line != -1){
-                mTemp = mTemp->right;
-            }
-            }while( mTemp->column < 1 && mTemp != m );
-                break;
-        }
-        if( mTemp != m || nTemp != n ){
-            if( mTemp == m ){
-                matrix_internal_add_node( matrixFinal, nTemp->line, nTemp->column, nTemp->info );
-                modeManageMemory = 1;
-            }else if ( nTemp == n ) {
-                matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info );
-                modeManageMemory = 2;
-            }else if ( mTemp->line == nTemp->line && mTemp->column == nTemp->column ) {
-                matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info + nTemp->info );
-                modeManageMemory = 0;
-            }else if ( mTemp->line < nTemp->line ) { 
-                matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info );
-                modeManageMemory = 2;
-            }else if ( mTemp->line > nTemp->line ) {
-                matrix_internal_add_node( matrixFinal , nTemp->line, nTemp->column, nTemp->info );
-                modeManageMemory = 1;
-            }else if ( mTemp->column < nTemp->column ) {
-                matrix_internal_add_node( matrixFinal, mTemp->line, mTemp->column, mTemp->info );
-                modeManageMemory = 2;
-            }else{
-                matrix_internal_add_node( matrixFinal, nTemp->line, nTemp->column, nTemp->info );
-                modeManageMemory = 1;
-            };
-        }
-    }while ( mTemp != m || nTemp != n );
-    return matrixFinal;*/
 }
 
 /*
@@ -766,7 +687,7 @@ Matrix* matrix_multiply( Matrix* m, Matrix* n ) {
                 matrix_internal_add_node( finalMatrix ,tempX ,tempY ,tempForSum );
                 tempForSum = 0;
             }
-            if ( mHead->below == m  && nHead != n) {
+            if ( mHead->below == m && nHead != n) {
                 nHead = nHead->right;
                 nTemp = nHead->below;
                 mHead = m->below;
@@ -822,55 +743,15 @@ Matrix* matrix_transpose( Matrix* m ) {
     return transposedMatrix;
 }
 
-//  << REMOVER ANTES DE ENTREGAR >>
-//  Funções para ajudar a debugar
-//  - Nomes iniciados por "test"
-
 /*
 ====================
-test_print_line()
+matrix_byte_size()
 
-    printa uma linha da matriz, recebendo como entrada sua cabeça
+    retorna o tamanho em bytes de uma matriz
 ====================
 */
 
-void test_print_line ( Matrix *mHead ) {
-    printf( "\n" );
-    for ( Matrix *temp = mHead->right; temp != mHead; temp = temp->right ) {
-        printf( "( %d x %d ) %.2f", temp->line, temp->column, temp->info );
-        if ( temp->right != mHead ) {
-            printf(" -> ");
-        }
-    }
-    printf( "\n\n" );
-}
-
-/*
-====================
-test_print_column()
-
-    printa uma coluna da matriz, recebendo como entrada sua cabeça
-====================
-*/
-
-void test_print_column ( Matrix *mHead ) {
-    printf( "\n" );
-    for ( Matrix *temp = mHead->below; temp != mHead; temp = temp->below ) {
-        printf( "( %d x %d ) %.2f\n", temp->line, temp->column, temp->info );
-    }
-    printf( "\n" );
-}
-
-/*
-====================
-test_matrix_byte_size()
-
-    retorna o tamanho em bytes da matriz (útil para verificar
-    vazamentos acusados pelo Dr. Memory)
-====================
-*/
-
-int test_matrix_byte_size( Matrix* mMasterHead ) {
+int matrix_byte_size( Matrix* mMasterHead ) {
     Matrix *temp, *mHead;
     int byteSize = 0;
 

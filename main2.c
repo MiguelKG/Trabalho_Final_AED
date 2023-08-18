@@ -21,10 +21,11 @@ Matrix* matrix_multiply( Matrix* m, Matrix* n );
 void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value );
 Matrix* matrix_internal_create( int lines, int columns );
 
+int matrix_byte_size( Matrix* mMasterHead );
+
 int main () {
-    Matrix *matrix = matrix_create( 15 );
-    matrix_print( matrix );
-    matrix_table( matrix );
+    Matrix *matrix = matrix_create_100mb();
+    printf( "%d", matrix_byte_size( matrix ) );
     matrix_destroy( matrix );
 }
 
@@ -440,4 +441,37 @@ Matrix* matrix_internal_create( int lines, int columns ) {
     temp->right = mMasterHead;
 
     return mMasterHead;
+}
+
+/*
+====================
+matrix_byte_size()
+
+    retorna o tamanho em bytes de uma matriz
+====================
+*/
+
+int matrix_byte_size( Matrix* mMasterHead ) {
+    Matrix *temp, *mHead;
+    int byteSize = 0;
+
+    temp = NULL;
+    mHead = mMasterHead;
+
+    while ( temp != mMasterHead ) {
+        if ( temp == NULL ) {
+            temp = mMasterHead;
+        }
+
+        byteSize += sizeof( Matrix );
+
+        if ( temp->right == mHead ) {
+            temp = temp->right->below;
+            mHead = temp;
+        } else {
+            temp = temp->right;
+        }
+    }
+
+    return byteSize;
 }
