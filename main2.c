@@ -33,13 +33,12 @@ int main () {
     matrix_destroy( matrix2, 5);
     matrix_destroy( matrixFinal, 5);
 */
-    int **matrix = matrix_internal_create( 5, 9 );
-    matrix_internal_add_node(matrix, 2, 3, 99);
+    int **matrix = matrix_create_100mb();
+    matrix_internal_add_node(matrix, 300, 455, 99);
     int **matrix2 = matrix_create( 5 );
 
-    matrix_table( matrix, 5, 9 );
     matrix_table( matrix2, 5, 5 );
-    matrix_destroy( matrix, 5 );
+    matrix_destroy( matrix, 5000 );
     matrix_destroy( matrix2, 5 );
 }
 
@@ -86,29 +85,30 @@ matrix_multiply()
 ====================
 */
 
-int** matrix_multiply( int** m, int** n , int nColluns , int mLinhas , int collumMLineN){
+int** matrix_multiply( int** m, int** n , int nCollums , int mLines , int collumMLineN){
 
     int somador;
-    int **finalMatrix = matrix_internal_create ( mLinhas , nColluns );
-    int i = 1 ,i2 = 1 ,i3 = 1 ;
+    int **finalMatrix = matrix_internal_create ( mLines , nCollums );
+    int i, i2 = 1, i3 = 1;
 
-    for( i ; i <=  nColluns ; i++ ) {
-        while ( i3 <= mLinhas ) {
-        somador = 0;
-        while (i2 <= collumMLineN ) {
-            somador +=  m[ i3 - 1 ] [ i2 - 1 ] * n[ i2 - 1 ] [ i - 1 ];
-            i2++;
-        }
+    for ( i = 1 ; i <= nCollums ; i++ ) {
+        while ( i3 <= mLines ) {
+            somador = 0;
+            while ( i2 <= collumMLineN ) {
+                somador +=  m[ i3 - 1 ] [ i2 - 1 ] * n[ i2 - 1 ] [ i - 1 ];
+                i2++;
+            }
 
-        matrix_internal_add_node( finalMatrix ,i3 ,i ,somador );
-        i2 = 1;
-        i3++;
+            matrix_internal_add_node( finalMatrix, i3, i, somador );
+            i2 = 1;
+            i3++;
         }
         i3 = 1;
     }
     
-return finalMatrix;
+    return finalMatrix;
 }
+
 /*
 ====================
 matrix_create_100mb()
@@ -118,7 +118,7 @@ matrix_create_100mb()
 */
 
 int** matrix_create_100mb( void ) {
-    return matrix_create( 5000 );
+    return matrix_internal_create( 5000, 5000 );
     // raiz de 25.000.000
     // 25.000.000 = ( 100 * ( 1000000 bytes ) ) / sizeof( int )
 }
