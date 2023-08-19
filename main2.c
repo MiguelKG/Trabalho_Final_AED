@@ -5,7 +5,7 @@
 
 int** matrix_create( unsigned int m );
 int** matrix_create_100mb( void );
-void matrix_destroy( int** matrix, int sizeX, int sizeY );
+void matrix_destroy( int** matrix, int sizeX );
 void matrix_print( int** m, int sizeX, int sizeY );
 void matrix_table( int **matrix, int sizeX, int sizeY );
 //Matrix* matrix_multiply( Matrix* m, Matrix* n );
@@ -23,8 +23,8 @@ int main () {
 
     matrix_table( matrix, 5, 9 );
     matrix_table( matrix2, 5, 5 );
-    matrix_destroy( matrix, 5, 9 );
-    matrix_destroy( matrix2, 5, 5 );
+    matrix_destroy( matrix, 5 );
+    matrix_destroy( matrix2, 5 );
 }
 
 /*
@@ -48,9 +48,9 @@ int** matrix_create( unsigned int m ) {
 
     int **matrix = ( int ** ) malloc( sizeof( int * ) * m );
 
-    for ( int i = 0; i < m; i++) {
+    for ( int i = 0; i < ( int ) m; i++) {
         matrix[ i ] = ( int * ) malloc( sizeof( int ) * m );
-        for ( int i2 = 0; i2 < m; i2++ ) {
+        for ( int i2 = 0; i2 < ( int ) m; i2++ ) {
             if ( rand() % 2 != 0 && rand() % 2 != 0 ){
                 matrix[ i ][ i2 ] = rand() % 100 + 1;
             } else {
@@ -189,7 +189,7 @@ matrix_destroy()
 ====================
 */
 
-void matrix_destroy( int** matrix, int sizeX, int sizeY ) {
+void matrix_destroy( int** matrix, int sizeX ) {
     for ( int i = 0; i < sizeX; i++ ) {
         free( matrix[ i ] );
     }
