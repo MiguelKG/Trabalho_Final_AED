@@ -3,30 +3,28 @@
 #include <math.h>
 #include <time.h>
 
-struct matrix {
-	struct matrix* right;
-	struct matrix* below;
-	int line;
-	int column;
-	float info;
-};
-typedef struct matrix Matrix;
+int** matrix_create( unsigned int m );
+int** matrix_create_100mb( void );
+void matrix_destroy( int** matrix, int sizeX, int sizeY );
+void matrix_print( int** m, int sizeX, int sizeY );
+void matrix_table( int **matrix, int sizeX, int sizeY );
+//Matrix* matrix_multiply( Matrix* m, Matrix* n );
+void matrix_internal_add_node( int **matrix, int line, int column, float value );
+int** matrix_internal_create( int sizeX, int sizeY );
 
-Matrix* matrix_create( unsigned int m );
-Matrix* matrix_create_100mb( void );
-void matrix_destroy( Matrix* m );
-void matrix_print( Matrix* m );
-void matrix_table( Matrix *mMasterHead );
-Matrix* matrix_multiply( Matrix* m, Matrix* n );
-void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value );
-Matrix* matrix_internal_create( int lines, int columns );
+int matrix_byte_size( int** mMasterHead, int sizeX, int sizeY );
 
-int matrix_byte_size( Matrix* mMasterHead );
+int firstElement = 1;
 
 int main () {
-    Matrix *matrix = matrix_create_100mb();
-    printf( "%d", matrix_byte_size( matrix ) );
-    matrix_destroy( matrix );
+    int **matrix = matrix_internal_create( 5, 9 );
+    matrix_internal_add_node(matrix, 2, 3, 99);
+    int **matrix2 = matrix_create( 5 );
+
+    matrix_table( matrix, 5, 9 );
+    matrix_table( matrix2, 5, 5 );
+    matrix_destroy( matrix, 5, 9 );
+    matrix_destroy( matrix2, 5, 5 );
 }
 
 /*
@@ -38,82 +36,30 @@ matrix_create()
 ====================
 */
 
-Matrix* matrix_create( unsigned int m ) {
+int** matrix_create( unsigned int m ) {
+    if ( firstElement ) {
+        srand( time( NULL ) );
+        firstElement = 0;
+    }
+
     if ( m == 0 ) {
         return NULL;
     }
 
-    Matrix *mMasterHead;
-    Matrix *mHead;
-    Matrix *temp;
-    Matrix *temp2;
-    int x;
+    int **matrix = ( int ** ) malloc( sizeof( int * ) * m );
 
-    mMasterHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
-    mMasterHead->below = mMasterHead;
-    mMasterHead->right = mMasterHead;
-    mMasterHead->line = -1;
-    mMasterHead->column = -1;
-
-    temp = mMasterHead;
-    temp2 = mMasterHead;
-    for ( int i = 1; i <= m; i++ ) {
-        mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
-        mHead->line = i;
-        mHead->column = -1;
-        mHead->right = mHead;
-
-        temp->below = mHead;
-        temp = temp->below;
-
-        mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
-        mHead->column = i;
-        mHead->line = -1;
-        mHead->below = mHead;
-
-        temp2->right = mHead;
-        temp2 = temp2->right;
-    }
-    temp->below = mMasterHead;
-    temp2->right = mMasterHead;
-
-    x = 1;
-    srand( time( NULL ) );
-    temp = mMasterHead->below;
-    temp2 = mMasterHead->right;
-    mHead = mMasterHead->below;
-
-    while ( temp != mMasterHead ) {
-        Matrix *node = ( Matrix * ) malloc ( sizeof(Matrix) );
-        node->column = temp2->column;
-        node->line = temp->line;
-
-        if ( rand() % 2 != 0 && rand() % 2 != 0 ){
-            node->info = rand() % 100 + 1;
-        } else {
-            node->info = 0;
-        }
-
-        node->below = temp2;
-        
-        temp->right = node;
-        temp2->below = node;
-
-        temp = temp->right;
-        temp2 = temp2->right;
-
-        if ( x < m ) {
-            x++;
-        } else {
-            x = 1;
-            temp->right = mHead;
-            temp = mHead->below;
-            temp2 = mHead->right;
-            mHead = mHead->below;
+    for ( int i = 0; i < m; i++) {
+        matrix[ i ] = ( int * ) malloc( sizeof( int ) * m );
+        for ( int i2 = 0; i2 < m; i2++ ) {
+            if ( rand() % 2 != 0 && rand() % 2 != 0 ){
+                matrix[ i ][ i2 ] = rand() % 100 + 1;
+            } else {
+                matrix[ i ][ i2 ] = 0;
+            }
         }
     }
 
-    return mMasterHead;
+    return matrix;
 }
 
 /*
@@ -124,13 +70,13 @@ matrix_multiply()
 ====================
 */
 
-Matrix* matrix_multiply( Matrix* m, Matrix* n ){
+/*Matrix* matrix_multiply( Matrix* m, Matrix* n ){
     int x = 0, tempForSum = 0;
     int tempX = 0, tempY = 0;
     Matrix *mTemp, *mHead;
     Matrix *nTemp, *nHead;
     for ( nTemp = n->right; nTemp != n; nTemp = nTemp->right, x++ );
-    Matrix *finalMatrix = matrix_internal_create(x,x);
+    Matrix *finalMatrix = matrix_internal_create(x, x);
     mHead = m->below;
     mTemp = mHead->right;
     nHead = n->right;
@@ -171,7 +117,7 @@ Matrix* matrix_multiply( Matrix* m, Matrix* n ){
     }
 }while( nHead != n );
 return finalMatrix;
-}
+}*/
 
 /*
 ====================
@@ -181,10 +127,10 @@ matrix_create_100mb()
 ====================
 */
 
-Matrix* matrix_create_100mb( void ) {
-    return matrix_create( 1768 );
-    // raiz de 3125000
-    // 3125000 = ( 100 * ( 1000000 bytes ) ) / sizeof( Matrix )
+int** matrix_create_100mb( void ) {
+    return matrix_create( 5000 );
+    // raiz de 25.000.000
+    // 25.000.000 = ( 100 * ( 1000000 bytes ) ) / sizeof( int )
 }
 
 /*
@@ -195,35 +141,11 @@ matrix_print()
 ====================
 */
 
-void matrix_print( Matrix* matrix ) {
-    if ( matrix == NULL ) {
-        return;
-    }
-
-    Matrix *temp, *mHead;
-    int x = 0;
-
-    for ( temp = matrix->right; temp != matrix; temp = temp->right, x++ );
-
-    printf( "\nTamanho: %d\n", x );
-
-    temp = matrix->below;
-    mHead = matrix->below;
-    while ( temp != matrix ) {
-        if ( temp->column != -1 ) {
-            if ( fmod(temp->info, 1) == 0 ) {
-                printf( "%d %d %.0f\n", temp->line, temp->column, temp->info );
-            } else {
-                printf( "%d %d %.2f\n", temp->line, temp->column, temp->info );
-            }
-        }
-
-        if ( temp->right == mHead ) {
-            temp = temp->right;
-            temp = temp->below;
-            mHead = temp;
-        } else {
-            temp = temp->right;
+void matrix_print( int** matrix, int sizeX, int sizeY ) {
+    printf( "%d %d\n", sizeX, sizeY );
+    for ( int i = 0; i < sizeX; i++ ) {
+        for ( int i2 = 0; i2 < sizeY; i2++ ) {
+            printf( "%d %d %d\n", i + 1, i2 + 1, matrix[i][i2] );
         }
     }
 }
@@ -236,46 +158,26 @@ matrix_table()
 ====================
 */
 
-void matrix_table( Matrix *mMasterHead ) {
-    if ( mMasterHead == NULL ) {
+void matrix_table( int **matrix, int sizeX, int sizeY ) {
+    if ( matrix == NULL ) {
         return;
     }
 
-    Matrix *temp;
-    Matrix *mHead;
-
     printf( "\n" );
-    
-    mHead = mMasterHead;
-    temp = mMasterHead->right;
 
     printf( "|X     |" );
-    while ( temp != mMasterHead ) {
-            
-        if ( temp->line == -1 ) {
-            printf( "%*d", -6, temp->column );
-        } else
-        if ( temp->column == -1 ) {
-            printf( "|%*d", -6, temp->line );
-        } else {
-            if ( fmod( temp->info, 1 ) == 0 ) {
-                printf( "%*.0f", -6, temp->info );
-            } else {
-                printf( "%*.2f", -6, temp->info );
-            }
-        }
-
-        printf( "|" );
-
-        if ( temp->right == mHead ) {
-            mHead = mHead->below;
-            temp = mHead;
-            printf( "\n" );
-        } else {
-            temp = temp->right;
-        }
+    for( int i = 0; i < sizeY; i++ ) {
+        printf( "%-6d|", i + 1 );
     }
     printf( "\n" );
+
+    for ( int i = 0; i < sizeX; i++ ) {
+        printf( "|%-6d|", i + 1 );
+        for ( int i2 = 0; i2 < sizeY; i2++ ) {
+            printf( "%-6d|", matrix[i][i2] );
+        }
+        printf( "\n" );
+    }
 }
 
 /*
@@ -283,164 +185,36 @@ void matrix_table( Matrix *mMasterHead ) {
 matrix_destroy()
 
     Função responsável por liberar os espaços de memória que estão alocando
-    os dados de uma matriz (Exclui uma matriz). utiliza-se a coluna -1 como
-    base para se iterar e liberar a memória ocupada por cada nodo. Após
-    isso, a coluna -1 também é excluida.
-
-    Obs:
-    1) "firstIteration" é necessário, pois "eraser" é inicializado com o
-    valor-condição necessário para o encerramento das repetições
-
-    2) As checagens de "temp != m" são especialmente importantes para
-    evitar acesso indevido de memória
+    os dados de uma matriz (Exclui uma matriz)
 ====================
 */
 
-void matrix_destroy( Matrix* m ) {
-    Matrix *temp = m->right;    // Mantém uma referência para o próximo elemento
-    Matrix *eraser = m;         // Armazena a posição do elemento que será liberado
-    int firstIteration = 1;     // Permite que a primeira iteração ocorra
-
-    while ( eraser != m || firstIteration ) {
-        if ( eraser->column != -1) {
-            free ( eraser );
-        }
-        eraser = temp;
-        if ( temp != m ) {
-            if ( temp->right->column == -1 ) {
-                temp = temp->right;
-                temp = temp->below;
-            } else {
-                temp = temp->right;
-            }
-        }
-        if ( firstIteration ) {
-            firstIteration = 0;
-        }
+void matrix_destroy( int** matrix, int sizeX, int sizeY ) {
+    for ( int i = 0; i < sizeX; i++ ) {
+        free( matrix[ i ] );
     }
-
-    firstIteration = 1;
-    temp = m->below;
-    eraser = m;
-    
-    while ( eraser != m || firstIteration ) {
-        if ( eraser->line != -1 ) {
-            free ( eraser );
-        }
-        eraser = temp;
-        if ( temp != m ) {
-            temp = temp->below;
-        } else {
-            temp = NULL;
-        }
-        if ( firstIteration ) {
-            firstIteration = 0;
-        }
-    }
-
-    free( m );
+    free( matrix );
 }
 
-void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float value ) {
-
-    Matrix *node = ( Matrix * ) malloc ( sizeof( Matrix ) );
-    Matrix *mHeadLine;
-    Matrix *mHeadColumn;
-    Matrix *temp;
-    Matrix *tempPrev;
-    int i;
-
-    //  Criação de um novo nodo
-
-    node->line = line;
-    node->column = column;
-    node->info = value;
-    node->right = NULL;
-    node->below = NULL;
-
-    //  Encontra a cabeça da linha do novo nodo
-
-    temp = mMasterHead;
-    for ( i = 1; i <= line; i++ ) {
-        temp = temp->below;
-    }
-    mHeadLine = temp;
-
-    //  Encontra a cabeça da coluna do novo nodo
-
-    temp = mMasterHead;
-    for ( i = 1; i <= column; i++ ) {
-        temp = temp->right;
-    }
-    mHeadColumn = temp;
-
-    /*
-        As repetições a seguir são responsáveis por encontrar o nodo que será precedido
-        e o que será sucedido pelo novo nodo adicionado. A primeira checa as linhas e a
-        segunda as colunas
-    */
-
-    for (
-        temp = mHeadLine->right, tempPrev = mHeadLine;
-        temp != mHeadLine && temp->column < node->column;
-        tempPrev = temp, temp = temp->right
-    );
-
-    tempPrev->right = node;
-    node->right = temp;
-
-    for (
-        temp = mHeadColumn->below, tempPrev = mHeadColumn;
-        temp != mHeadColumn && temp->line < node->line;
-        tempPrev = temp, temp = temp->below
-    );
-
-    tempPrev->below = node;
-    node->below = temp;
+void matrix_internal_add_node( int **matrix, int line, int column, float value ) {
+    matrix[ line - 1 ][ column - 1 ] = value;
 }
 
-Matrix* matrix_internal_create( int lines, int columns ) {
-    Matrix *mMasterHead;
-    Matrix *temp;
-    int i;
-
-    //  Definição da cabeça principal (indíce 0 - 0)
-
-    mMasterHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
-    mMasterHead->below = mMasterHead;
-    mMasterHead->right = mMasterHead;
-    mMasterHead->line = -1;
-    mMasterHead->column = -1;
-
-    //  Criação das cabeças de cada linha
-    
-    temp = mMasterHead;
-    for ( i = 1; i <= lines; i++ ) {
-        Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
-        mHead->line = i;
-        mHead->column = -1;
-        mHead->right = mHead;
-
-        temp->below = mHead;
-        temp = temp->below;
+int** matrix_internal_create( int sizeX, int sizeY ) {
+    if ( sizeX == 0 || sizeY == 0 ) {
+        return NULL;
     }
-    temp->below = mMasterHead;
 
-    //  Criação das cabeças de cada coluna
+    int **matrix = ( int ** ) malloc( sizeof( int * ) * sizeX );
 
-    temp = mMasterHead;
-    for ( i = 1; i <= columns; i++ ) {
-        Matrix *mHead = ( Matrix * ) malloc ( sizeof( Matrix ) );
-        mHead->column = i;
-        mHead->line = -1;
-        mHead->below = mHead;
-
-        temp->right = mHead;
-        temp = temp->right;
+    for ( int i = 0; i < sizeX; i++) {
+        matrix[ i ] = ( int * ) malloc( sizeof( int ) * sizeY );
+        for ( int i2 = 0; i2 < sizeY; i2++ ) {
+            matrix[ i ][ i2 ] = 0;
+        }
     }
-    temp->right = mMasterHead;
 
-    return mMasterHead;
+    return matrix;
 }
 
 /*
@@ -451,25 +225,12 @@ matrix_byte_size()
 ====================
 */
 
-int matrix_byte_size( Matrix* mMasterHead ) {
-    Matrix *temp, *mHead;
+int matrix_byte_size( int** matrix, int sizeX, int sizeY ) {
     int byteSize = 0;
 
-    temp = NULL;
-    mHead = mMasterHead;
-
-    while ( temp != mMasterHead ) {
-        if ( temp == NULL ) {
-            temp = mMasterHead;
-        }
-
-        byteSize += sizeof( Matrix );
-
-        if ( temp->right == mHead ) {
-            temp = temp->right->below;
-            mHead = temp;
-        } else {
-            temp = temp->right;
+    for ( int i = 0; i < sizeX; i++ ) {
+        for ( int i2 = 0; i2 < sizeY; i2++ ) {
+            byteSize += (int) sizeof( matrix[i][i2] );
         }
     }
 
