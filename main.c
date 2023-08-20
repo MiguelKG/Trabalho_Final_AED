@@ -583,6 +583,8 @@ Matrix* matrix_add( Matrix* m, Matrix* n ) {
 
     int maxLineSize = 0;
     int maxColumnSize = 0;
+    int mEnded = 0;
+    int nEnded = 0;
 
     temp = m->right;
     temp2 = n->right;
@@ -615,24 +617,30 @@ Matrix* matrix_add( Matrix* m, Matrix* n ) {
     temp = m->below;
     temp2 = n->below;
 
-    while ( temp != m ) {
+    while ( !mEnded || !nEnded ) {
         temp = temp->right;
         temp2 = temp2->right;
         for ( int i = 1; i <= maxLineSize; i++ ) {
-            if ( i == temp->column && i == temp2->column ) {
+            if ( i == temp->column && i == temp2->column && !mEnded && !nEnded ) {
                 matrix_internal_add_node( mAdd, temp->line, i, temp->info + temp2->info );
                 temp = temp->right;
                 temp2 = temp2->right;
-            } else if ( i == temp->column ) {
+            } else if ( i == temp->column && !mEnded ) {
                 matrix_internal_add_node( mAdd, temp->line, i, temp->info );
                 temp = temp->right;
-            } else if ( i == temp2->column ) {
+            } else if ( i == temp2->column && !nEnded ) {
                 matrix_internal_add_node( mAdd, temp2->line, i, temp2->info );
                 temp2 = temp2->right;
             }
         }
         temp = temp->below;
         temp2 = temp2->below;
+        if ( temp == m ) {
+            mEnded = 1;
+        }
+        if ( temp2 == n ) {
+            nEnded = 1;
+        }
     }
 
     return mAdd;
