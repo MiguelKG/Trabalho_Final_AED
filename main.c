@@ -33,7 +33,7 @@ void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float 
 
 int main () {
     /* Inicializacao da aplicacao ... */
-    Matrix *A = matrix_create();
+    /*Matrix *A = matrix_create();
     matrix_print( A );
     matrix_table( A );
 
@@ -58,7 +58,13 @@ int main () {
     matrix_destroy( C );
     matrix_destroy( A );
     matrix_destroy( B );
-    return 0;
+    return 0;*/
+
+    Matrix *m1 = matrix_internal_create(1, 4);
+    Matrix *m2 = matrix_internal_create(1, 5);
+    matrix_internal_add_node(m2, 1, 5, 33);
+    matrix_internal_add_node(m1, 1, 1, 15);
+    matrix_table(matrix_add(m1, m2));
 }
 
 //  Definição de funções
@@ -590,7 +596,7 @@ Matrix* matrix_add( Matrix* m, Matrix* n ) {
     temp2 = n->right;
 
     while ( temp != m || temp2 != n ) { 
-        maxLineSize++;
+        maxColumnSize++;
         if ( temp != m ) {
             temp = temp->right;
         }
@@ -603,7 +609,7 @@ Matrix* matrix_add( Matrix* m, Matrix* n ) {
     temp2 = n->below;
 
     while ( temp != m || temp2 != n ) { 
-        maxColumnSize++;
+        maxLineSize++;
         if ( temp != m ) {
             temp = temp->below;
         }
@@ -620,7 +626,7 @@ Matrix* matrix_add( Matrix* m, Matrix* n ) {
     while ( !mEnded || !nEnded ) {
         temp = temp->right;
         temp2 = temp2->right;
-        for ( int i = 1; i <= maxLineSize; i++ ) {
+        for ( int i = 1; i <= maxColumnSize; i++ ) {
             if ( i == temp->column && i == temp2->column && !mEnded && !nEnded ) {
                 matrix_internal_add_node( mAdd, temp->line, i, temp->info + temp2->info );
                 temp = temp->right;
