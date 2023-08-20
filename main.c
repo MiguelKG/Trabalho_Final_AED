@@ -33,7 +33,7 @@ void matrix_internal_add_node( Matrix *mMasterHead, int line, int column, float 
 
 int main () {
     /* Inicializacao da aplicacao ... */
-    /*Matrix *A = matrix_create();
+    Matrix *A = matrix_create();
     matrix_print( A );
     matrix_table( A );
 
@@ -58,13 +58,7 @@ int main () {
     matrix_destroy( C );
     matrix_destroy( A );
     matrix_destroy( B );
-    return 0;*/
-
-    Matrix *m1 = matrix_internal_create(1, 4);
-    Matrix *m2 = matrix_internal_create(1, 5);
-    matrix_internal_add_node(m2, 1, 5, 33);
-    matrix_internal_add_node(m1, 1, 1, 15);
-    matrix_table(matrix_add(m1, m2));
+    return 0;
 }
 
 //  Definição de funções
