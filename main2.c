@@ -3,16 +3,16 @@
 #include <math.h>
 #include <time.h>
 
-int** matrix_create( unsigned int m );
-int** matrix_create_100mb( void );
-void matrix_destroy( int** matrix, int sizeX );
-void matrix_print( int** m, int sizeX, int sizeY );
-void matrix_table( int **matrix, int sizeX, int sizeY );
-int** matrix_multiply( int** m, int** n , int nColluns , int mLinhas , int collumMLineN);
-void matrix_internal_add_node( int **matrix, int line, int column, float value );
-int** matrix_internal_create( int sizeX, int sizeY );
+float** matrix_create( unsigned int m );
+float** matrix_create_100mb( void );
+void matrix_destroy( float** matrix, int sizeX );
+void matrix_print( float** m, int sizeX, int sizeY );
+void matrix_table( float **matrix, int sizeX, int sizeY );
+float** matrix_multiply( float** m, float** n , int nColluns , int mLinhas , int collumMLineN);
+void matrix_internal_add_node( float **matrix, int line, int column, float value );
+float** matrix_internal_create( int sizeX, int sizeY );
 
-int matrix_byte_size( int** mMasterHead, int sizeX, int sizeY );
+int matrix_byte_size( float** mMasterHead, int sizeX, int sizeY );
 
 int firstElement = 1;
 
@@ -33,10 +33,10 @@ int main () {
     matrix_destroy( matrix2, 5);
     matrix_destroy( matrixFinal, 5);
 */
-    int **matrix = matrix_create_100mb();
+    float **matrix = matrix_create_100mb();
     matrix_internal_add_node(matrix, 300, 455, 99);
-    int **matrix2 = matrix_create( 5 );
-
+    float **matrix2 = matrix_create( 5 );
+    
     matrix_table( matrix2, 5, 5 );
     matrix_destroy( matrix, 5000 );
     matrix_destroy( matrix2, 5 );
@@ -51,7 +51,7 @@ matrix_create()
 ====================
 */
 
-int** matrix_create( unsigned int m ) {
+float** matrix_create( unsigned int m ) {
     if ( firstElement ) {
         srand( time( NULL ) );
         firstElement = 0;
@@ -61,10 +61,10 @@ int** matrix_create( unsigned int m ) {
         return NULL;
     }
 
-    int **matrix = ( int ** ) malloc( sizeof( int * ) * m );
+    float **matrix = ( float ** ) malloc( sizeof( float * ) * m );
 
     for ( int i = 0; i < ( int ) m; i++) {
-        matrix[ i ] = ( int * ) malloc( sizeof( int ) * m );
+        matrix[ i ] = ( float * ) malloc( sizeof( float ) * m );
         for ( int i2 = 0; i2 < ( int ) m; i2++ ) {
             if ( rand() % 2 != 0 && rand() % 2 != 0 ){
                 matrix[ i ][ i2 ] = rand() % 100 + 1;
@@ -85,10 +85,10 @@ matrix_multiply()
 ====================
 */
 
-int** matrix_multiply( int** m, int** n , int nCollums , int mLines , int collumMLineN){
+float** matrix_multiply( float** m, float** n , int nCollums , int mLines , int collumMLineN){
 
     int somador;
-    int **finalMatrix = matrix_internal_create ( mLines , nCollums );
+    float **finalMatrix = matrix_internal_create ( mLines , nCollums );
     int i, i2 = 1, i3 = 1;
 
     for ( i = 1 ; i <= nCollums ; i++ ) {
@@ -117,7 +117,7 @@ matrix_create_100mb()
 ====================
 */
 
-int** matrix_create_100mb( void ) {
+float** matrix_create_100mb( void ) {
     return matrix_internal_create( 5000, 5000 );
     // raiz de 25.000.000
     // 25.000.000 = ( 100 * ( 1000000 bytes ) ) / sizeof( int )
@@ -131,11 +131,11 @@ matrix_print()
 ====================
 */
 
-void matrix_print( int** matrix, int sizeX, int sizeY ) {
+void matrix_print( float** matrix, int sizeX, int sizeY ) {
     printf( "%d %d\n", sizeX, sizeY );
     for ( int i = 0; i < sizeX; i++ ) {
         for ( int i2 = 0; i2 < sizeY; i2++ ) {
-            printf( "%d %d %d\n", i + 1, i2 + 1, matrix[i][i2] );
+            printf( "%d %d %f\n", i + 1, i2 + 1, matrix[i][i2] );
         }
     }
 }
@@ -148,7 +148,7 @@ matrix_table()
 ====================
 */
 
-void matrix_table( int **matrix, int sizeX, int sizeY ) {
+void matrix_table( float **matrix, int sizeX, int sizeY ) {
     if ( matrix == NULL ) {
         return;
     }
@@ -157,14 +157,18 @@ void matrix_table( int **matrix, int sizeX, int sizeY ) {
 
     printf( "|X     |" );
     for( int i = 0; i < sizeY; i++ ) {
-        printf( "%-6d|", i + 1 );
+        printf( "%-6d|", i + 1 );//
     }
     printf( "\n" );
 
     for ( int i = 0; i < sizeX; i++ ) {
         printf( "|%-6d|", i + 1 );
         for ( int i2 = 0; i2 < sizeY; i2++ ) {
-            printf( "%-6d|", matrix[i][i2] );
+            if ( fmod( matrix[i][i2], 1 ) == 0 ) {
+                printf( "%-6.0f|", matrix[i][i2] );
+            } else {
+                printf( "%-6.2f|", matrix[i][i2] );
+            }
         }
         printf( "\n" );
     }
@@ -179,26 +183,26 @@ matrix_destroy()
 ====================
 */
 
-void matrix_destroy( int** matrix, int sizeX ) {
+void matrix_destroy( float** matrix, int sizeX ) {
     for ( int i = 0; i < sizeX; i++ ) {
         free( matrix[ i ] );
     }
     free( matrix );
 }
 
-void matrix_internal_add_node( int **matrix, int line, int column, float value ) {
+void matrix_internal_add_node( float **matrix, int line, int column, float value ) {
     matrix[ line - 1 ][ column - 1 ] = value;
 }
 
-int** matrix_internal_create( int sizeX, int sizeY ) {
+float** matrix_internal_create( int sizeX, int sizeY ) {
     if ( sizeX == 0 || sizeY == 0 ) {
         return NULL;
     }
 
-    int **matrix = ( int ** ) malloc( sizeof( int * ) * sizeX );
+    float **matrix = ( float ** ) malloc( sizeof( float * ) * sizeX );
 
     for ( int i = 0; i < sizeX; i++) {
-        matrix[ i ] = ( int * ) malloc( sizeof( int ) * sizeY );
+        matrix[ i ] = ( float * ) malloc( sizeof( float ) * sizeY );
         for ( int i2 = 0; i2 < sizeY; i2++ ) {
             matrix[ i ][ i2 ] = 0;
         }
@@ -215,7 +219,7 @@ matrix_byte_size()
 ====================
 */
 
-int matrix_byte_size( int** matrix, int sizeX, int sizeY ) {
+int matrix_byte_size( float** matrix, int sizeX, int sizeY ) {
     int byteSize = 0;
 
     for ( int i = 0; i < sizeX; i++ ) {

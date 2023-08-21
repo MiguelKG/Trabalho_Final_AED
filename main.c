@@ -446,7 +446,7 @@ void matrix_print( Matrix* m ) {
     mHead = m->below;
     while ( temp != m ) {
         if ( temp->column != -1 ) {
-            if ( fmod(temp->info, 1) == 0 ) {
+            if ( fmod( temp->info, 1 ) == 0 ) {
                 printf( "%d %d %.0f\n", temp->line, temp->column, temp->info );
             } else {
                 printf( "%d %d %.2f\n", temp->line, temp->column, temp->info );
