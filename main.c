@@ -473,6 +473,11 @@ matrix_getelem()
 
 float matrix_getelem( Matrix* m, int x, int y ) {
     Matrix *temp, *mHead;
+    int maxLines = 0;
+    int maxColumns = 0;
+
+    for ( temp = m->right; temp != m; temp = temp->right ) maxColumns++;
+    for ( temp = m->below; temp != m; temp = temp->below ) maxLines++;
     
     for ( temp = m->right; temp->column != y && temp != m; temp = temp->right );
     mHead = temp;
@@ -480,6 +485,8 @@ float matrix_getelem( Matrix* m, int x, int y ) {
 
     if ( temp->line == x && temp->column == y ) {
         return temp->info;
+    } else if ( x > 0 && x <= maxColumns && y > 0 && y <= maxLines ) {
+        return 0;
     }
     return -1;
 }
@@ -495,6 +502,11 @@ matrix_setelem()
 
 void matrix_setelem( Matrix* m, int x, int y, float elem ) {
     Matrix *temp, *mHead;
+    int maxLines = 0;
+    int maxColumns = 0;
+
+    for ( temp = m->right; temp != m; temp = temp->right ) maxColumns++;
+    for ( temp = m->below; temp != m; temp = temp->below ) maxLines++;
     
     for ( temp = m->right; temp->column != y && temp != m; temp = temp->right );
     mHead = temp;
@@ -502,6 +514,8 @@ void matrix_setelem( Matrix* m, int x, int y, float elem ) {
 
     if ( temp->line == x && temp->column == y ) {
         temp->info = elem;
+    } else if ( x > 0 && x <= maxColumns && y > 0 && y <= maxLines ) {
+        matrix_internal_add_node( m, x, y, elem );
     }
 }
 
